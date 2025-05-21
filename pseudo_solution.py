@@ -324,7 +324,7 @@ def printResult(res):
         print("c", f)
 
 ## This function is invoked when the python script is run directly and not imported
-if __name__ == '__main__':
+def main(steps, floors, roads, items, man):
     path = shutil.which(SATsolver.split()[0])
     if path is None:
         if SATsolver == defSATsolver:
@@ -335,40 +335,23 @@ if __name__ == '__main__':
 
     kwargs = {}
     
-    ##+ Start of code insertion
-    # Read the arguments
-    if len(sys.argv) != 2:
-        print("Usage: %s <steps>" % sys.argv[0])
-        sys.exit(1)
-    steps = int(sys.argv[1])
-    if steps < 0:
-        print("Usage: <steps> must be a non-negative integer" % sys.argv[0])
-        sys.exit(1)
     kwargs['steps'] = steps
 
     # Hardcoded arguments
-    kwargs['vans'] = ["v_%d" % p for p in range(0, 3)]
-    kwargs['parcels'] = ["p_%d" % f for f in range(0, 3)]
+    kwargs['vans'] = ["v_%d" % p for p in range(0, man)]
+    kwargs['parcels'] = ["p_%d" % f for f in range(0, len(items))]
     
     # Map
-    cities = ["Bellinzona", "Morcote", "Agno", "Lugano", "Melide"]
-    kwargs['cities'] = cities
-    kwargs['roads'] = [
-        (cities[0], cities[3]),
-        (cities[3], cities[0]),
-        (cities[1], cities[3]),
-        (cities[3], cities[1]),
-        (cities[2], cities[3]),
-        (cities[3], cities[2]),
-        (cities[1], cities[4]),
-        (cities[4], cities[1])]
+    cities = floors
+    kwargs['cities'] = floors
+    kwargs['roads'] = roads
         
     # Initial conditions
-    kwargs['parcel_init_cities'] = {"p_0": cities[0], "p_1": cities[1], "p_2": cities[2]}
+    kwargs['parcel_init_cities'] =items  #{"p_0": cities[0], "p_1": cities[1], "p_2": cities[2]}
     kwargs['base_city'] = cities[0]
     
     # Final condition
-    kwargs['dest_city'] = cities[4]
+    kwargs['dest_city'] = cities[0]
     ##+ End of code insertion
 
     genVarNames(**kwargs)
@@ -389,3 +372,25 @@ if __name__ == '__main__':
     #printResult(res)
     print("--------------------------")
     print(res.strip())
+
+if __name__ == "__main__":
+    n_floors = 3
+    floors = [str(i) for i in range(0, n_floors)]
+    roads = []
+    man = 3
+    for i in range(0, n_floors-1):
+        roads.append((floors[i], floors[i+1]))
+        roads.append((floors[i+1], floors[i]))
+    print("roads:",roads)
+    print("floors:",floors)
+    items_l = [0,3]
+    count = -1
+    items = {}
+    for i in range(0, len(items_l)):
+        for j in range(0, items_l[i]):
+            count += 1
+            items.update({"p_%d" % count : floors[i]})
+    print("items:",items)
+    step =3
+    print("steps:",step)
+    main(step, floors, roads, items, man)
