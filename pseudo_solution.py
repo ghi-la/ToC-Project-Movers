@@ -385,4 +385,7 @@ if __name__ == '__main__':
     # Run the SATsolver
     solverOutput = Popen([SATsolver + " tmp_prob.cnf"], stdout=PIPE, shell=True).communicate()[0]
     res = solverOutput.decode('utf-8')
-    printResult(res)
+    print("--------------------------")
+    #printResult(res)
+    print("--------------------------")
+    print(res.strip())
