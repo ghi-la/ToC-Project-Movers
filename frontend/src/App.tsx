@@ -20,15 +20,60 @@ type ItemPosition = {
 };
 
 const items: Item[] = [
-  { size: 3, name: "sofa", color: "bg-yellow-400", isVertical: false },
-  { size: 2, name: "table", color: "bg-blue-500", isVertical: false },
-  { size: 1, name: "chair", color: "bg-red-500", isVertical: false },
-  { size: 1, name: "lamp", color: "bg-green-500", isVertical: false },
-  { size: 2, name: "bed", color: "bg-purple-500", isVertical: false },
-  { size: 3, name: "wardrobe", color: "bg-orange-500", isVertical: true },
-  { size: 2, name: "desk", color: "bg-pink-500", isVertical: false },
-  { size: 1, name: "bookshelf", color: "bg-amber-700", isVertical: true },
-  { size: 1, name: "tv", color: "bg-gray-500", isVertical: false },
+  {
+    size: 3,
+    name: "sofa",
+    color: "bg-yellow-400 border border-2 border-yellow-500",
+    isVertical: false,
+  },
+  {
+    size: 2,
+    name: "table",
+    color: "bg-blue-500 border border-2 border-blue-600",
+    isVertical: false,
+  },
+  {
+    size: 1,
+    name: "chair",
+    color: "bg-red-500 border border-2 border-red-600",
+    isVertical: false,
+  },
+  {
+    size: 1,
+    name: "lamp",
+    color: "bg-green-500 border border-2 border-green-600",
+    isVertical: false,
+  },
+  {
+    size: 2,
+    name: "bed",
+    color: "bg-purple-500 border border-2 border-purple-600",
+    isVertical: false,
+  },
+  {
+    size: 3,
+    name: "wardrobe",
+    color: "bg-orange-500 border border-2 border-orange-600",
+    isVertical: true,
+  },
+  {
+    size: 2,
+    name: "desk",
+    color: "bg-pink-500 border border-2 border-pink-600",
+    isVertical: false,
+  },
+  {
+    size: 1,
+    name: "bookshelf",
+    color: "bg-amber-700 border border-2 border-amber-600",
+    isVertical: true,
+  },
+  {
+    size: 1,
+    name: "tv",
+    color: "bg-gray-500 border border-2 border-gray-600",
+    isVertical: false,
+  },
 ];
 
 export default function App() {
@@ -158,7 +203,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 min-h-screen">
+    <div className="flex flex-row gap-4 p-4 min-h-screen">
       {/* Furniture Items Panel */}
       <div className="w-full md:w-1/4 p-4 bg-white shadow-md rounded-lg overflow-auto max-h-screen">
         <h2 className="text-xl font-bold mb-4">Furniture Items</h2>
@@ -180,89 +225,74 @@ export default function App() {
         </div>
       </div>
 
-      {/* Floor Grid Panel */}
-      <div
-        className="w-full md:w-2/4 bg-gray-100 rounded-lg p-4"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Floor {currentFloor}</h2>
-        </div>
-
-        <div className="relative w-[500px] h-[500px] grid grid-cols-10 grid-rows-10 gap-0 border border-gray-300">
-          {Array.from({ length: gridSizeX * gridSizeY }).map((_, index) => {
-            const x = index % gridSizeX;
-            const y = Math.floor(index / gridSizeY);
-
-            // Show hover effect if dragging over this cell
-            const isHovered =
-              draggedItem && hoverCell.x === x && hoverCell.y === y;
-
-            return (
-              <div
-                key={index}
-                className={`border border-gray-200 w-[50px] h-[50px] ${
-                  isHovered ? "bg-blue-100" : ""
-                }`}
-              ></div>
-            );
-          })}
-
-          {/* Preview of item being placed */}
-          {draggedItem && hoverCell.x >= 0 && hoverCell.y >= 0 && (
-            <div
-              className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20`}
-              style={{
-                width: draggedItem.isVertical ? 50 : draggedItem.size * 50,
-                height: draggedItem.isVertical ? draggedItem.size * 50 : 50,
-                left: hoverCell.x * 50,
-                top: hoverCell.y * 50,
-              }}
-            >
-              {draggedItem.name}
-            </div>
-          )}
-
-          {/* Placed items */}
-          {getCurrentFloorObjects().map((placedItem, index) => (
-            <div
-              key={index}
-              className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10`}
-              style={{
-                width: placedItem.isVertical ? 50 : placedItem.item.size * 50,
-                height: placedItem.isVertical ? placedItem.item.size * 50 : 50,
-                left: placedItem.x * 50,
-                top: placedItem.y * 50,
-              }}
-            >
-              {placedItem.item.name}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Building Visualization Panel */}
-      <div className="w-full md:w-1/4 bg-white shadow-md rounded-lg p-4 flex flex-col">
+      <div className="w-1/3 bg-white shadow-md rounded-lg p-4 flex flex-col">
         <h2 className="text-xl font-bold mb-4">Building</h2>
 
-        <div className="flex-grow flex flex-col-reverse">
-          {floors.map((floor, index) => (
-            <div
-              key={floor.id}
-              className={`h-16 border-2 border-gray-400 mb-1 flex items-center justify-center cursor-pointer ${
-                floor.id === currentFloor
-                  ? "bg-blue-100 border-blue-500"
-                  : "bg-gray-100"
-              }`}
-              onClick={() => switchFloor(floor.id)}
-            >
-              <span className="font-bold">Floor {floor.id}</span>
-              <span className="text-xs ml-2">
-                ({floor.objects.length} items)
-              </span>
-            </div>
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className="flex-grow flex flex-col-reverse"
+        >
+          {floors.map((floor) => (
+            <>
+              <div className="h-3 w-full bg-gray-600"></div>
+              <div className="relative w-[500px] h-[250px] border border-gray-300">
+                {/* Grid cells */}
+                <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full">
+                  {Array.from({ length: gridSizeX * gridSizeY }).map(
+                    (_, index) => {
+                      return (
+                        <div
+                          key={index}
+                          className={`border-gray-200 border-[.2em]`}
+                        ></div>
+                      );
+                    }
+                  )}
+                </div>
+
+                {/* Preview of item being placed */}
+                {draggedItem && hoverCell.x >= 0 && hoverCell.y >= 0 && (
+                  <div
+                    className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20`}
+                    style={{
+                      width: draggedItem.isVertical
+                        ? 50
+                        : draggedItem.size * 50,
+                      height: draggedItem.isVertical
+                        ? draggedItem.size * 50
+                        : 50,
+                      left: hoverCell.x * 50,
+                      top: hoverCell.y * 50,
+                    }}
+                  >
+                    {draggedItem.name}
+                  </div>
+                )}
+
+                {/* Placed items */}
+                {getCurrentFloorObjects().map((placedItem, index) => (
+                  <div
+                    key={index}
+                    className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10`}
+                    style={{
+                      width: placedItem.isVertical
+                        ? 50
+                        : placedItem.item.size * 50,
+                      height: placedItem.isVertical
+                        ? placedItem.item.size * 50
+                        : 50,
+                      left: placedItem.x * 50,
+                      top: placedItem.y * 50,
+                    }}
+                  >
+                    {placedItem.item.name}
+                  </div>
+                ))}
+              </div>
+            </>
           ))}
 
           {/* Building Base */}
