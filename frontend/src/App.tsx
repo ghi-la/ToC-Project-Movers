@@ -235,51 +235,6 @@ export default function App() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Floor {currentFloor}</h2>
         </div>
-
-        <div className="relative w-[500px] h-[250px] border border-gray-300">
-          {/* Grid cells */}
-          <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full">
-            {Array.from({ length: gridSizeX * gridSizeY }).map((_, index) => {
-              return (
-                <div
-                  key={index}
-                  className={`border-gray-200 border-[.2em]`}
-                ></div>
-              );
-            })}
-          </div>
-
-          {/* Preview of item being placed */}
-          {draggedItem && hoverCell.x >= 0 && hoverCell.y >= 0 && (
-            <div
-              className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20`}
-              style={{
-                width: draggedItem.isVertical ? 50 : draggedItem.size * 50,
-                height: draggedItem.isVertical ? draggedItem.size * 50 : 50,
-                left: hoverCell.x * 50,
-                top: hoverCell.y * 50,
-              }}
-            >
-              {draggedItem.name}
-            </div>
-          )}
-
-          {/* Placed items */}
-          {getCurrentFloorObjects().map((placedItem, index) => (
-            <div
-              key={index}
-              className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10`}
-              style={{
-                width: placedItem.isVertical ? 50 : placedItem.item.size * 50,
-                height: placedItem.isVertical ? placedItem.item.size * 50 : 50,
-                left: placedItem.x * 50,
-                top: placedItem.y * 50,
-              }}
-            >
-              {placedItem.item.name}
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Building Visualization Panel */}
@@ -288,20 +243,63 @@ export default function App() {
 
         <div className="flex-grow flex flex-col-reverse">
           {floors.map((floor) => (
-            <div
-              key={floor.id}
-              className={`h-16 border-2 border-gray-400 mb-1 flex items-center justify-center cursor-pointer ${
-                floor.id === currentFloor
-                  ? "bg-blue-100 border-blue-500"
-                  : "bg-gray-100"
-              }`}
-              onClick={() => switchFloor(floor.id)}
-            >
-              <span className="font-bold">Floor {floor.id}</span>
-              <span className="text-xs ml-2">
-                ({floor.objects.length} items)
-              </span>
-            </div>
+            <>
+              <div className="h-3 w-full bg-gray-600"></div>
+              <div className="relative w-[500px] h-[250px] border border-gray-300">
+                {/* Grid cells */}
+                <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full">
+                  {Array.from({ length: gridSizeX * gridSizeY }).map(
+                    (_, index) => {
+                      return (
+                        <div
+                          key={index}
+                          className={`border-gray-200 border-[.2em]`}
+                        ></div>
+                      );
+                    }
+                  )}
+                </div>
+
+                {/* Preview of item being placed */}
+                {draggedItem && hoverCell.x >= 0 && hoverCell.y >= 0 && (
+                  <div
+                    className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20`}
+                    style={{
+                      width: draggedItem.isVertical
+                        ? 50
+                        : draggedItem.size * 50,
+                      height: draggedItem.isVertical
+                        ? draggedItem.size * 50
+                        : 50,
+                      left: hoverCell.x * 50,
+                      top: hoverCell.y * 50,
+                    }}
+                  >
+                    {draggedItem.name}
+                  </div>
+                )}
+
+                {/* Placed items */}
+                {getCurrentFloorObjects().map((placedItem, index) => (
+                  <div
+                    key={index}
+                    className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10`}
+                    style={{
+                      width: placedItem.isVertical
+                        ? 50
+                        : placedItem.item.size * 50,
+                      height: placedItem.isVertical
+                        ? placedItem.item.size * 50
+                        : 50,
+                      left: placedItem.x * 50,
+                      top: placedItem.y * 50,
+                    }}
+                  >
+                    {placedItem.item.name}
+                  </div>
+                ))}
+              </div>
+            </>
           ))}
 
           {/* Building Base */}
