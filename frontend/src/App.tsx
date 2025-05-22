@@ -203,7 +203,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 min-h-screen">
+    <div className="flex flex-row gap-4 p-4 min-h-screen">
       {/* Furniture Items Panel */}
       <div className="w-full md:w-1/4 p-4 bg-white shadow-md rounded-lg overflow-auto max-h-screen">
         <h2 className="text-xl font-bold mb-4">Furniture Items</h2>
@@ -225,23 +225,16 @@ export default function App() {
         </div>
       </div>
 
-      {/* Floor Grid Panel */}
-      <div
-        className="w-full md:w-2/4 bg-gray-100 rounded-lg p-4"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Floor {currentFloor}</h2>
-        </div>
-      </div>
-
       {/* Building Visualization Panel */}
-      <div className="w-full md:w-1/4 bg-white shadow-md rounded-lg p-4 flex flex-col">
+      <div className="w-1/3 bg-white shadow-md rounded-lg p-4 flex flex-col">
         <h2 className="text-xl font-bold mb-4">Building</h2>
 
-        <div className="flex-grow flex flex-col-reverse">
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className="flex-grow flex flex-col-reverse"
+        >
           {floors.map((floor) => (
             <>
               <div className="h-3 w-full bg-gray-600"></div>
