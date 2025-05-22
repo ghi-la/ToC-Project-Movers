@@ -323,8 +323,10 @@ def printResult(res):
     for f in sorted(facts):
         print("c", f)
 
+    return sorted(facts)
+
 ## This function is invoked when the python script is run directly and not imported
-def main(steps, floors, roads, items, man):
+def main(steps, floors, roads, items, man, parcels):
     path = shutil.which(SATsolver.split()[0])
     if path is None:
         if SATsolver == defSATsolver:
@@ -339,7 +341,7 @@ def main(steps, floors, roads, items, man):
 
     # Hardcoded arguments
     kwargs['vans'] = ["v_%d" % p for p in range(0, man)]
-    kwargs['parcels'] = ["p_%d" % f for f in range(0, len(items))]
+    kwargs['parcels'] = parcels
     
     # Map
     cities = floors
@@ -369,27 +371,29 @@ def main(steps, floors, roads, items, man):
     solverOutput = Popen([SATsolver + " tmp_prob.cnf"], stdout=PIPE, shell=True).communicate()[0]
     res = solverOutput.decode('utf-8')
     print("--------------------------")
-    #printResult(res)
+    facts = printResult(res)
     print("--------------------------")
     print(res.strip())
-    return res.strip()
+    return facts, res.strip()
 
-def run_sat_solver(n_floors=3, n_man=3):
-    floors = [str(i) for i in range(0, n_floors)]
+def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3):
+    floors = [str(i) for i in range(0, len(items_l))]
     roads = []
-    for i in range(0, n_floors-1):
+    for i in range(0, len(items_l)-1):
         roads.append((floors[i], floors[i+1]))
         roads.append((floors[i+1], floors[i]))
-    print("roads:",roads)
-    print("floors:",floors)
-    items_l = [0,3]
-    count = -1
+    # print("roads:",roads)
+    # print("floors:",floors)
+    
+    parcels = []
     items = {}
-    for i in range(0, len(items_l)):
-        for j in range(0, items_l[i]):
+    for i in range(0, len(items_l)): # For each floor
+        count = 0
+        for j in range(0, len(items_l[i])): # For each item in the floor
             count += 1
-            items.update({"p_%d" % count : floors[i]})
+            items.update({items_l[i][j]+str(count) + '_floor' + str(floors[i]) : floors[i]})
+            parcels.append(items_l[i][j]+str(count) + '_floor' + str(floors[i]))
     print("items:",items)
-    step =3
+    step =3 
     print("steps:",step)
-    return main(step, floors, roads, items, n_man)
+    return main(step, floors, roads, items, workers, parcels)

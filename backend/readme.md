@@ -29,3 +29,18 @@ In order to run the sat solver use API:
 ```
 GET: http://localhost:8000/runSAT?step=1&floors=2&roads=3&items=4&man=5
 ```
+
+
+## TODO:
+step -> max number of actions - start from 0 and keep incrementing until SAT => Fastest Solutin
+    Not required, must return
+flors -> number of flors (maybe just the lengt of the array of items +1(ground flor))
+    Required, may return
+roads ->
+    Not required
+man -> workers
+    Required, may return
+items -> Array of array of strings (label of the object)
+    Required as req.body
+
+Must return also the actions performed by each worker
