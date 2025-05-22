@@ -20,15 +20,60 @@ type ItemPosition = {
 };
 
 const items: Item[] = [
-  { size: 3, name: "sofa", color: "bg-yellow-400", isVertical: false },
-  { size: 2, name: "table", color: "bg-blue-500", isVertical: false },
-  { size: 1, name: "chair", color: "bg-red-500", isVertical: false },
-  { size: 1, name: "lamp", color: "bg-green-500", isVertical: false },
-  { size: 2, name: "bed", color: "bg-purple-500", isVertical: false },
-  { size: 3, name: "wardrobe", color: "bg-orange-500", isVertical: true },
-  { size: 2, name: "desk", color: "bg-pink-500", isVertical: false },
-  { size: 1, name: "bookshelf", color: "bg-amber-700", isVertical: true },
-  { size: 1, name: "tv", color: "bg-gray-500", isVertical: false },
+  {
+    size: 3,
+    name: "sofa",
+    color: "bg-yellow-400 border border-2 border-yellow-500",
+    isVertical: false,
+  },
+  {
+    size: 2,
+    name: "table",
+    color: "bg-blue-500 border border-2 border-blue-600",
+    isVertical: false,
+  },
+  {
+    size: 1,
+    name: "chair",
+    color: "bg-red-500 border border-2 border-red-600",
+    isVertical: false,
+  },
+  {
+    size: 1,
+    name: "lamp",
+    color: "bg-green-500 border border-2 border-green-600",
+    isVertical: false,
+  },
+  {
+    size: 2,
+    name: "bed",
+    color: "bg-purple-500 border border-2 border-purple-600",
+    isVertical: false,
+  },
+  {
+    size: 3,
+    name: "wardrobe",
+    color: "bg-orange-500 border border-2 border-orange-600",
+    isVertical: true,
+  },
+  {
+    size: 2,
+    name: "desk",
+    color: "bg-pink-500 border border-2 border-pink-600",
+    isVertical: false,
+  },
+  {
+    size: 1,
+    name: "bookshelf",
+    color: "bg-amber-700 border border-2 border-amber-600",
+    isVertical: true,
+  },
+  {
+    size: 1,
+    name: "tv",
+    color: "bg-gray-500 border border-2 border-gray-600",
+    isVertical: false,
+  },
 ];
 
 export default function App() {
@@ -191,24 +236,18 @@ export default function App() {
           <h2 className="text-xl font-bold">Floor {currentFloor}</h2>
         </div>
 
-        <div className="relative w-[500px] h-[500px] grid grid-cols-10 grid-rows-10 gap-0 border border-gray-300">
-          {Array.from({ length: gridSizeX * gridSizeY }).map((_, index) => {
-            const x = index % gridSizeX;
-            const y = Math.floor(index / gridSizeY);
-
-            // Show hover effect if dragging over this cell
-            const isHovered =
-              draggedItem && hoverCell.x === x && hoverCell.y === y;
-
-            return (
-              <div
-                key={index}
-                className={`border border-gray-200 w-[50px] h-[50px] ${
-                  isHovered ? "bg-blue-100" : ""
-                }`}
-              ></div>
-            );
-          })}
+        <div className="relative w-[500px] h-[250px] border border-gray-300">
+          {/* Grid cells */}
+          <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full">
+            {Array.from({ length: gridSizeX * gridSizeY }).map((_, index) => {
+              return (
+                <div
+                  key={index}
+                  className={`border-gray-200 border-[.2em]`}
+                ></div>
+              );
+            })}
+          </div>
 
           {/* Preview of item being placed */}
           {draggedItem && hoverCell.x >= 0 && hoverCell.y >= 0 && (
@@ -248,7 +287,7 @@ export default function App() {
         <h2 className="text-xl font-bold mb-4">Building</h2>
 
         <div className="flex-grow flex flex-col-reverse">
-          {floors.map((floor, index) => (
+          {floors.map((floor) => (
             <div
               key={floor.id}
               className={`h-16 border-2 border-gray-400 mb-1 flex items-center justify-center cursor-pointer ${
