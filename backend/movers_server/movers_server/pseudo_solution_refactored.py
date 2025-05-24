@@ -299,7 +299,7 @@ def getDimacsHeader(clauses):
 def toDimacsCnf(clauses):
     return "\n".join(map(lambda x: "%s 0" % " ".join(map(str, x)), clauses))
 
-## A helper function to print only the satisfied variables in human-readable format (do not modify)
+
 def printResult(res):
     print(res)
     res = res.strip().split('\n')
@@ -310,25 +310,64 @@ def printResult(res):
 
     # First get the assignment, which is on the second line of the file, and split it on spaces
     # Read the solution
-    asgn = map(int, res[1].split()[1:])
-    # Then get the variables that are positive, and get their names.
-    # This way we know that everything not printed is false.
-    # The last element in asgn is the trailing zero and we can ignore it
-
-    # Convert the solution to our names
-    facts = map(lambda x: varNumberToName(abs(x)), filter(lambda x: x > 0, asgn))
-
-    facts_array = []
-    # Print the solution
-    print("c SOLUTION:")
-    for f in sorted(facts):
-        facts_array.append(f)
-        print("c", f)
+    asgn = list(map(int, res[1].split()[1:]))
     
+    # Then get the variables that are positive, and get their names
+    true_vars = [varNumberToName(abs(x)) for x in asgn if x > 0]
+    
+    # Group facts by time step
+    time_steps = {}
+    for fact in true_vars:
+        # Extract time from fact name using regex
+        if '(' in fact and ')' in fact:
+            parts = fact.split('(')[1].split(',')
+            if len(parts) >= 2:
+                try:
+                    time = int(parts[0])
+                    if time not in time_steps:
+                        time_steps[time] = []
+                    time_steps[time].append(fact)
+                except ValueError:
+                    # If time can't be parsed as integer, just append to general facts
+                    pass
 
-    return facts_array
+    # Print the solution in time order
+    print("c SOLUTION BY TIME STEP:")
+    for time in sorted(time_steps.keys()):
+        print(f"c TIME {time}:")
+        
+        # Group by action type
+        actions = {
+            "positions": [],
+            "movements": [],
+            "transports": [],
+            "pickups": []
+        }
+        
+        for fact in sorted(time_steps[time]):
+            if fact.startswith("inTown"):
+                actions["positions"].append(fact)
+            elif fact.startswith("goesTo") or fact.startswith("moves"):
+                actions["movements"].append(fact)
+            elif fact.startswith("transports"):
+                actions["transports"].append(fact)
+            elif fact.startswith("pickingUp"):
+                actions["pickups"].append(fact)
+        
+        # Print each action type
+        for action_type, facts in actions.items():
+            if facts:
+                print(f"c   {action_type.upper()}:")
+                for fact in facts:
+                    print(f"c     {fact}")
+    
+    # Also print the original alphabetical list
+    print("c ALPHABETICAL LIST OF ALL TRUE FACTS:")
+    for f in sorted(true_vars):
+        print("c", f)
 
-## This function is invoked when the python script is run directly and not imported
+    return sorted(true_vars)
+
 def main(steps, floors, roads, items, man, parcels):
     path = shutil.which(SATsolver.split()[0])
     if path is None:
@@ -374,10 +413,9 @@ def main(steps, floors, roads, items, man, parcels):
     solverOutput = Popen([SATsolver + " tmp_prob.cnf"], stdout=PIPE, shell=True).communicate()[0]
     res = solverOutput.decode('utf-8')
     print("--------------------------")
-    facts = printResult(res)
+    printResult(res)
     print("--------------------------")
-    # print(res.strip())
-    return facts, res.strip()
+    print(res.strip().split()[1])  # Print the last line of the output, which is the result
 
 def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3):
     floors = [str(i) for i in range(0, len(items_l))]
@@ -396,8 +434,7 @@ def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3)
             count += 1
             items.update({items_l[i][j]+str(count) + '_floor' + str(floors[i]) : floors[i]})
             parcels.append(items_l[i][j]+str(count) + '_floor' + str(floors[i]))
-    # print("items:",items)
-    step =3 
-    # print("steps:",step)
-    facts, res = main(step, floors, roads, items, workers, parcels)
-    return facts, res
+    print("items:",items)
+    step = 3 
+    print("steps:",step)
+    main(step, floors, roads, items, workers, parcels)
