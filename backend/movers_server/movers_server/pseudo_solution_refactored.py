@@ -318,12 +318,15 @@ def printResult(res):
     # Convert the solution to our names
     facts = map(lambda x: varNumberToName(abs(x)), filter(lambda x: x > 0, asgn))
 
+    facts_array = []
     # Print the solution
     print("c SOLUTION:")
     for f in sorted(facts):
+        facts_array.append(f)
         print("c", f)
+    
 
-    return sorted(facts)
+    return facts_array
 
 ## This function is invoked when the python script is run directly and not imported
 def main(steps, floors, roads, items, man, parcels):
@@ -373,7 +376,7 @@ def main(steps, floors, roads, items, man, parcels):
     print("--------------------------")
     facts = printResult(res)
     print("--------------------------")
-    print(res.strip())
+    # print(res.strip())
     return facts, res.strip()
 
 def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3):
@@ -393,7 +396,8 @@ def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3)
             count += 1
             items.update({items_l[i][j]+str(count) + '_floor' + str(floors[i]) : floors[i]})
             parcels.append(items_l[i][j]+str(count) + '_floor' + str(floors[i]))
-    print("items:",items)
+    # print("items:",items)
     step =3 
-    print("steps:",step)
-    return main(step, floors, roads, items, workers, parcels)
+    # print("steps:",step)
+    facts, res = main(step, floors, roads, items, workers, parcels)
+    return facts, res
