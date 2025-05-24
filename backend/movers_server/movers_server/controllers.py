@@ -12,12 +12,11 @@ def run_SAT(request):
     man = request.GET.get('man')
 
     SAT_facts, SAT_result = run_sat_solver(workers=int(man))
-    
-    print(SAT_facts)
 
-    # results = SAT_result.split('\n')
 
-    # is_satisfiable = results[0].replace('s ', '') == 'SATISFIABLE'
+    results = SAT_result.split('\n')
+
+    is_satisfiable = results[0].replace('s ', '') == 'SATISFIABLE'
     
     # if is_satisfiable:
     #     values = results[1].replace('v ', '').split(' ')
@@ -30,7 +29,7 @@ def run_SAT(request):
         # "floors": floors,
         # # "items": items,
         # "man": man,
-        # "is_satisfiable": is_satisfiable,
+        "is_satisfiable": is_satisfiable,
         # "values": values
         "SAT_facts": SAT_facts,
     })

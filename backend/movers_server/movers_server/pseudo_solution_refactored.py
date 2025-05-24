@@ -365,6 +365,7 @@ def printResult(res):
     print("c ALPHABETICAL LIST OF ALL TRUE FACTS:")
     for f in sorted(true_vars):
         print("c", f)
+    
 
     return sorted(true_vars)
 
@@ -413,9 +414,9 @@ def main(steps, floors, roads, items, man, parcels):
     solverOutput = Popen([SATsolver + " tmp_prob.cnf"], stdout=PIPE, shell=True).communicate()[0]
     res = solverOutput.decode('utf-8')
     print("--------------------------")
-    printResult(res)
+    facts = printResult(res)
     print("--------------------------")
-    print(res.strip().split()[1])  # Print the last line of the output, which is the result
+    return facts, res.strip().split()[1]  # Print the last line of the output, which is the result
 
 def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3):
     floors = [str(i) for i in range(0, len(items_l))]
