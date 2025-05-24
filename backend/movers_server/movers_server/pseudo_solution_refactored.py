@@ -418,7 +418,7 @@ def main(steps, floors, roads, items, man, parcels):
     print("--------------------------")
     return facts, res.strip().split()[1]  # Print the last line of the output, which is the result
 
-def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3):
+def run_sat_solver(items_l = [], workers=3):
     floors = [str(i) for i in range(0, len(items_l))]
     roads = []
     for i in range(0, len(items_l)-1):
@@ -435,7 +435,12 @@ def run_sat_solver(items_l = [[],['lampada', 'comodino', 'lampada']], workers=3)
             count += 1
             items.update({items_l[i][j]+str(count) + '_floor' + str(floors[i]) : floors[i]})
             parcels.append(items_l[i][j]+str(count) + '_floor' + str(floors[i]))
-    print("items:",items)
-    step = 3 
-    print("steps:",step)
-    main(step, floors, roads, items, workers, parcels)
+    # print("items:",items)
+    step = 0
+    # print("steps:",step)
+    res = 'UNSATISFIABLE'
+    facts = []
+    while (res == 'UNSATISFIABLE'):
+        facts, res = main(step, floors, roads, items, workers, parcels)
+        step += 1
+    return facts, res, step

@@ -18,9 +18,10 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import path
 from django.urls import include
-from .controllers import run_SAT
+from .controllers import run_SAT, run_tests
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('runSAT', run_SAT),
+    path('runTests', run_tests),
 ]

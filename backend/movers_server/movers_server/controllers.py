@@ -1,35 +1,40 @@
 from django.http import HttpResponse, JsonResponse
 from .pseudo_solution_refactored import run_sat_solver
+from .utils import parse_SAT_facts
+import json
 
 def hello_world(request):
     return HttpResponse("Hello, world!")
 
 def run_SAT(request):
-    # Expect parameters step, floors, roads, items, man
-    # step = request.GET.get('step')
-    floors = request.GET.get('floors')
-    # items = request.GET.get('items')
     man = request.GET.get('man')
+    data = json.loads(request.body.decode('utf-8'))
+    items_l = data.get('items_list', [])
 
-    SAT_facts, SAT_result = run_sat_solver(workers=int(man))
+    # TODO: remove this
+    # items_l = [[],['lampada', 'comodino', 'lampada']] 
 
-
-    results = SAT_result.split('\n')
-
-    is_satisfiable = results[0].replace('s ', '') == 'SATISFIABLE'
-    
-    # if is_satisfiable:
-    #     values = results[1].replace('v ', '').split(' ')
-    #     values = [int(v) for v in values if v != '0']
-    # else:
-    #     values = []
+    SAT_facts, SAT_result, SAT_STEPS = run_sat_solver(workers=int(man), items_l=items_l)
+    facts = parse_SAT_facts(SAT_facts)
 
     return JsonResponse({
-        # # "step": step,
-        # "floors": floors,
-        # # "items": items,
-        # "man": man,
-        "is_satisfiable": is_satisfiable,
-        # "values": values
+        "is_satisfiable": SAT_result,
+        'steps': SAT_STEPS,
+        'facts': facts,
         "SAT_facts": SAT_facts,
+
+    })
+
+def run_tests(request):
+    test1_facts, test1_res, test1_step = run_sat_solver(workers=3)
+    test2_facts, test2_res, test2_step = run_sat_solver(workers=6)
+
+
+
+    return JsonResponse({
+        'test1': {
+            'result': test1_res,
+            'steps': test1_step,
+            'facts': test1_facts,
+        },
     })
