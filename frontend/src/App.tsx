@@ -215,7 +215,7 @@ export default function App() {
       </div>
 
       {/* Building Visualization Panel */}
-      <div className="w-2/3 shadow-md rounded-lg p-4 flex flex-col bg-cyan-50">
+      <div className="w-2/3 shadow-md rounded-lg p-4 flex flex-col bg-sky-100">
         <h2 className="text-xl font-bold mb-4">Building</h2>
 
         <div className="flex-grow overflow-y-auto max-h-[70vh]">
@@ -223,9 +223,17 @@ export default function App() {
             <div className="w-[400px] mx-auto">
               <div className="flex flex-col-reverse">
                 {/* Building Base */}
-                <div className="h-6 bg-gray-800 mb-2"></div>
+                <div className="h-32 flex items-end justify-center bg-gray-300 border-4 border-gray-700 mb-2">
+                  <div className="h-14 pl-[2px] w-10 bg-orange-800 border-4 border-orange-900 flex flex-row flex-wrap gap-1">
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="relative top-[-60%] left-[70%] w-2 h-2 rounded-full bg-yellow-200"></div>
+                  </div>
+                </div>
 
-                {/* Show all floors stacked - all editable */}
+                {/* Show all floors stacked */}
                 {floors.map((floor) => (
                   <div key={floor.id} className="relative">
                     {/* Floor separator */}
@@ -308,7 +316,7 @@ export default function App() {
             </div>
           </div>
         </div>
-
+        {/* grass */}
         {/* Add Floor Button */}
         <div className="flex flex-col gap-2">
           <button
