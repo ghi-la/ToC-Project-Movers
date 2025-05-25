@@ -626,7 +626,7 @@ export default function App() {
                 className="bg-blue-700 hover:bg-blue-800 rounded-xl py-2 text-white"
                 onClick={handleGenerate}
               >
-                Generate
+                Solve
               </button>
             </div>
           </div>
@@ -661,20 +661,20 @@ export default function App() {
 
           <div className="flex-grow flex flex-col">
             <div className="flex justify-between items-center mb-2">
-              <label className="font-semibold">Backend JSON:</label>
+              <label className="font-semibold">JSON:</label>
               <div className="flex gap-2">
                 <button
                   onClick={resetJsonToCurrentState}
                   className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
                 >
-                  Reset to Current State
+                  Reset Editor
                 </button>
                 <button
                   onClick={handleGenerate}
                   disabled={!!jsonError}
                   className="bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-1 rounded text-sm"
                 >
-                  Generate from JSON
+                  Solve
                 </button>
               </div>
             </div>
