@@ -78,9 +78,8 @@ const items: Item[] = [
 
 export default function App() {
   const [floors, setFloors] = useState([{ id: 1, objects: [] }]);
-  const [currentFloor, setCurrentFloor] = useState(1);
   const [draggedItem, setDraggedItem] = useState(null as Item | null);
-  const [hoverCell, setHoverCell] = useState({ x: -1, y: -1 });
+  const [hoverCell, setHoverCell] = useState({ x: -1, y: -1, floorId: -1 });
   const gridSizeX = 10;
   const gridSizeY = 5;
 
@@ -89,17 +88,18 @@ export default function App() {
     e.dataTransfer.setData("text/plain", item.name);
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>, floorId: number) => {
     e.preventDefault();
     if (!draggedItem) return;
 
-    // Get grid cell dimensions
-    const cellSize = 50;
+    // Get grid cell dimensions based on container size
     const rect = e.currentTarget.getBoundingClientRect();
+    const cellWidth = rect.width / gridSizeX;
+    const cellHeight = rect.height / gridSizeY;
 
     // Calculate which grid cell was dropped on
-    const cellX = Math.floor((e.clientX - rect.left) / cellSize);
-    const cellY = Math.floor((e.clientY - rect.top) / cellSize);
+    const cellX = Math.floor((e.clientX - rect.left) / cellWidth);
+    const cellY = Math.floor((e.clientY - rect.top) / cellHeight);
 
     // Use the item's isVertical property
     const isItemVertical = draggedItem.isVertical || false;
@@ -119,9 +119,8 @@ export default function App() {
       return;
     }
 
-    // Get objects for current floor
-    const currentObjects =
-      floors.find((f) => f.id === currentFloor)?.objects || [];
+    // Get objects for target floor
+    const currentObjects = floors.find((f) => f.id === floorId)?.objects || [];
 
     // Check for collisions with existing items
     const hasCollision = currentObjects.some((existingItem) => {
@@ -159,7 +158,7 @@ export default function App() {
     // Update the floor objects
     setFloors(
       floors.map((floor) => {
-        if (floor.id === currentFloor) {
+        if (floor.id === floorId) {
           return {
             ...floor,
             objects: [...floor.objects, newPlacedItem],
@@ -170,36 +169,31 @@ export default function App() {
     );
 
     setDraggedItem(null);
+    setHoverCell({ x: -1, y: -1, floorId: -1 });
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>, floorId: number) => {
     e.preventDefault();
 
     if (!draggedItem) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const cellX = Math.floor((e.clientX - rect.left) / 50);
-    const cellY = Math.floor((e.clientY - rect.top) / 50);
+    const cellWidth = rect.width / gridSizeX;
+    const cellHeight = rect.height / gridSizeY;
 
-    setHoverCell({ x: cellX, y: cellY });
+    const cellX = Math.floor((e.clientX - rect.left) / cellWidth);
+    const cellY = Math.floor((e.clientY - rect.top) / cellHeight);
+
+    setHoverCell({ x: cellX, y: cellY, floorId });
   };
 
   const handleDragLeave = () => {
-    setHoverCell({ x: -1, y: -1 });
+    setHoverCell({ x: -1, y: -1, floorId: -1 });
   };
 
   const addNewFloor = () => {
     const newFloorId = floors.length + 1;
     setFloors([...floors, { id: newFloorId, objects: [] }]);
-    setCurrentFloor(newFloorId);
-  };
-
-  const switchFloor = (floorId: number) => {
-    setCurrentFloor(floorId);
-  };
-
-  const getCurrentFloorObjects = () => {
-    return floors.find((f) => f.id === currentFloor)?.objects || [];
   };
 
   return (
@@ -226,98 +220,118 @@ export default function App() {
       </div>
 
       {/* Building Visualization Panel */}
-      <div className="w-1/3 bg-white shadow-md rounded-lg p-4 flex flex-col">
+      <div className="w-2/3 bg-white shadow-md rounded-lg p-4 flex flex-col">
         <h2 className="text-xl font-bold mb-4">Building</h2>
 
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className="flex-grow flex flex-col-reverse"
-        >
+        <div className="flex-grow flex flex-col-reverse overflow-auto max-h-[70vh] w-[50%] overflow-x-hidden">
+          {/* Building Base */}
+          <div className="h-6 bg-gray-800 mb-2"></div>
+
+          {/* Show all floors stacked - all editable */}
           {floors.map((floor) => (
-            <>
+            <div key={floor.id} className="relative mb-1">
+              {/* Floor separator */}
               <div className="h-3 w-full bg-gray-600"></div>
-              <div className="relative w-[500px] h-[250px] border border-gray-300">
-                {/* Grid cells */}
-                <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full">
-                  {Array.from({ length: gridSizeX * gridSizeY }).map(
-                    (_, index) => {
-                      return (
-                        <div
-                          key={index}
-                          className={`border-gray-200 border-[.2em]`}
-                        ></div>
-                      );
-                    }
-                  )}
+
+              <div
+                className="relative w-full border-2 border-gray-300 bg-white hover:border-blue-400 transition-colors"
+                style={{
+                  aspectRatio: `${gridSizeX}/${gridSizeY}`,
+                }}
+                onDrop={(e) => handleDrop(e, floor.id)}
+                onDragOver={(e) => handleDragOver(e, floor.id)}
+                onDragLeave={handleDragLeave}
+              >
+                {/* Floor label */}
+                <div className="absolute top-2 right-2 px-2 py-1 rounded text-xs z-40 bg-gray-800 text-white">
+                  Floor {floor.id}
                 </div>
 
-                {/* Preview of item being placed */}
-                {draggedItem && hoverCell.x >= 0 && hoverCell.y >= 0 && (
-                  <div
-                    className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20`}
-                    style={{
-                      width: draggedItem.isVertical
-                        ? 50
-                        : draggedItem.size * 50,
-                      height: draggedItem.isVertical
-                        ? draggedItem.size * 50
-                        : 50,
-                      left: hoverCell.x * 50,
-                      top: hoverCell.y * 50,
-                    }}
-                  >
-                    {draggedItem.name}
+                {/* Grid cells (visible on hover or when dragging) */}
+                {draggedItem && hoverCell.floorId === floor.id && (
+                  <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full opacity-30 pointer-events-none">
+                    {Array.from({ length: gridSizeX * gridSizeY }).map(
+                      (_, index) => (
+                        <div
+                          key={index}
+                          className="border-gray-400 border-[1px]"
+                        ></div>
+                      )
+                    )}
                   </div>
                 )}
 
-                {/* Placed items */}
-                {getCurrentFloorObjects().map((placedItem, index) => (
+                {/* Preview of item being placed */}
+                {draggedItem &&
+                  hoverCell.floorId === floor.id &&
+                  hoverCell.x >= 0 &&
+                  hoverCell.y >= 0 && (
+                    <div
+                      className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20 pointer-events-none`}
+                      style={{
+                        width: draggedItem.isVertical
+                          ? `${100 / gridSizeX}%`
+                          : `${(draggedItem.size * 100) / gridSizeX}%`,
+                        height: draggedItem.isVertical
+                          ? `${(draggedItem.size * 100) / gridSizeY}%`
+                          : `${100 / gridSizeY}%`,
+                        left: `${(hoverCell.x * 100) / gridSizeX}%`,
+                        top: `${(hoverCell.y * 100) / gridSizeY}%`,
+                      }}
+                    >
+                      {draggedItem.name}
+                    </div>
+                  )}
+
+                {/* Placed items for this specific floor */}
+                {floor.objects.map((placedItem, index) => (
                   <div
                     key={index}
-                    className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10`}
+                    className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10 cursor-pointer`}
                     style={{
                       width: placedItem.isVertical
-                        ? 50
-                        : placedItem.item.size * 50,
+                        ? `${100 / gridSizeX}%`
+                        : `${(placedItem.item.size * 100) / gridSizeX}%`,
                       height: placedItem.isVertical
-                        ? placedItem.item.size * 50
-                        : 50,
-                      left: placedItem.x * 50,
-                      top: placedItem.y * 50,
+                        ? `${(placedItem.item.size * 100) / gridSizeY}%`
+                        : `${100 / gridSizeY}%`,
+                      left: `${(placedItem.x * 100) / gridSizeX}%`,
+                      top: `${(placedItem.y * 100) / gridSizeY}%`,
                     }}
+                    title={`${placedItem.item.name} on Floor ${floor.id}`}
                   >
                     {placedItem.item.name}
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           ))}
-
-          {/* Building Base */}
-          <div className="h-8 bg-gray-800 mb-2"></div>
         </div>
 
         {/* Add Floor Button */}
-        <button
-          className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg flex items-center justify-center"
-          onClick={addNewFloor}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+        <div className="flex flex-col gap-2">
+          <button
+            className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg flex items-center justify-center"
+            onClick={addNewFloor}
           >
-            <path
-              fillRule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Add Floor
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Add Floor
+          </button>
+          <button className="bg-blue-700 hover:bg-blue-800 rounded-xl py-2 text-white">
+            Generate
+          </button>
+        </div>
       </div>
     </div>
   );
