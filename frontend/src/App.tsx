@@ -1,10 +1,5 @@
 import React, { useState, DragEvent } from "react";
 
-type Floor = {
-  id: number;
-  objects: ItemPosition[];
-};
-
 type Item = {
   size: number;
   name: string;
@@ -53,7 +48,7 @@ const items: Item[] = [
   {
     size: 3,
     name: "wardrobe",
-    color: "bg-orange-500 border border-2 border-orange-600",
+    color: "bg-orange-500 border border-2 border-orange-600 text-[1vh]",
     isVertical: true,
   },
   {
@@ -65,7 +60,7 @@ const items: Item[] = [
   {
     size: 1,
     name: "bookshelf",
-    color: "bg-amber-700 border border-2 border-amber-600",
+    color: "bg-amber-700 border border-2 border-amber-600 text-[1vh]",
     isVertical: true,
   },
   {
@@ -223,89 +218,95 @@ export default function App() {
       <div className="w-2/3 bg-white shadow-md rounded-lg p-4 flex flex-col">
         <h2 className="text-xl font-bold mb-4">Building</h2>
 
-        <div className="flex-grow flex flex-col-reverse overflow-auto max-h-[70vh] w-[50%] overflow-x-hidden">
-          {/* Building Base */}
-          <div className="h-6 bg-gray-800 mb-2"></div>
+        <div className="flex-grow overflow-y-auto max-h-[70vh]">
+          <div className="min-h-full flex flex-col justify-end">
+            <div className="w-[400px] mx-auto">
+              <div className="flex flex-col-reverse">
+                {/* Building Base */}
+                <div className="h-6 bg-gray-800 mb-2"></div>
 
-          {/* Show all floors stacked - all editable */}
-          {floors.map((floor) => (
-            <div key={floor.id} className="relative mb-1">
-              {/* Floor separator */}
-              <div className="h-3 w-full bg-gray-600"></div>
+                {/* Show all floors stacked - all editable */}
+                {floors.map((floor) => (
+                  <div key={floor.id} className="relative mb-1">
+                    {/* Floor separator */}
+                    <div className="h-3 w-full bg-gray-600"></div>
 
-              <div
-                className="relative w-full border-2 border-gray-300 bg-white hover:border-blue-400 transition-colors"
-                style={{
-                  aspectRatio: `${gridSizeX}/${gridSizeY}`,
-                }}
-                onDrop={(e) => handleDrop(e, floor.id)}
-                onDragOver={(e) => handleDragOver(e, floor.id)}
-                onDragLeave={handleDragLeave}
-              >
-                {/* Floor label */}
-                <div className="absolute top-2 right-2 px-2 py-1 rounded text-xs z-40 bg-gray-800 text-white">
-                  Floor {floor.id}
-                </div>
+                    <div
+                      className="relative w-full border-2 border-gray-300 bg-white hover:border-blue-400 transition-colors"
+                      style={{
+                        aspectRatio: `${gridSizeX}/${gridSizeY}`,
+                      }}
+                      onDrop={(e) => handleDrop(e, floor.id)}
+                      onDragOver={(e) => handleDragOver(e, floor.id)}
+                      onDragLeave={handleDragLeave}
+                    >
+                      {/* Floor label */}
+                      <div className="absolute top-1 right-1 px-2 py-1 rounded text-xs z-40 bg-gray-800 text-white">
+                        Floor {floor.id}
+                      </div>
 
-                {/* Grid cells (visible on hover or when dragging) */}
-                {draggedItem && hoverCell.floorId === floor.id && (
-                  <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full opacity-30 pointer-events-none">
-                    {Array.from({ length: gridSizeX * gridSizeY }).map(
-                      (_, index) => (
+                      {/* Grid cells (visible on hover or when dragging) */}
+                      {draggedItem && hoverCell.floorId === floor.id && (
+                        <div className="absolute top-0 left-0 grid grid-cols-10 grid-rows-5 w-full h-full opacity-30 pointer-events-none">
+                          {Array.from({ length: gridSizeX * gridSizeY }).map(
+                            (_, index) => (
+                              <div
+                                key={index}
+                                className="border-gray-400 border-[1px]"
+                              ></div>
+                            )
+                          )}
+                        </div>
+                      )}
+
+                      {/* Preview of item being placed */}
+                      {draggedItem &&
+                        hoverCell.floorId === floor.id &&
+                        hoverCell.x >= 0 &&
+                        hoverCell.y >= 0 && (
+                          <div
+                            className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20 pointer-events-none`}
+                            style={{
+                              width: draggedItem.isVertical
+                                ? `${100 / gridSizeX}%`
+                                : `${(draggedItem.size * 100) / gridSizeX}%`,
+                              height: draggedItem.isVertical
+                                ? `${(draggedItem.size * 100) / gridSizeY}%`
+                                : `${100 / gridSizeY}%`,
+                              left: `${(hoverCell.x * 100) / gridSizeX}%`,
+                              top: `${(hoverCell.y * 100) / gridSizeY}%`,
+                            }}
+                          >
+                            {draggedItem.name}
+                          </div>
+                        )}
+
+                      {/* Placed items for this specific floor */}
+                      {floor.objects.map((placedItem, index) => (
                         <div
                           key={index}
-                          className="border-gray-400 border-[1px]"
-                        ></div>
-                      )
-                    )}
-                  </div>
-                )}
-
-                {/* Preview of item being placed */}
-                {draggedItem &&
-                  hoverCell.floorId === floor.id &&
-                  hoverCell.x >= 0 &&
-                  hoverCell.y >= 0 && (
-                    <div
-                      className={`${draggedItem.color} opacity-50 text-center flex items-center justify-center text-xs absolute z-20 pointer-events-none`}
-                      style={{
-                        width: draggedItem.isVertical
-                          ? `${100 / gridSizeX}%`
-                          : `${(draggedItem.size * 100) / gridSizeX}%`,
-                        height: draggedItem.isVertical
-                          ? `${(draggedItem.size * 100) / gridSizeY}%`
-                          : `${100 / gridSizeY}%`,
-                        left: `${(hoverCell.x * 100) / gridSizeX}%`,
-                        top: `${(hoverCell.y * 100) / gridSizeY}%`,
-                      }}
-                    >
-                      {draggedItem.name}
+                          className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10 cursor-pointer`}
+                          style={{
+                            width: placedItem.isVertical
+                              ? `${100 / gridSizeX}%`
+                              : `${(placedItem.item.size * 100) / gridSizeX}%`,
+                            height: placedItem.isVertical
+                              ? `${(placedItem.item.size * 100) / gridSizeY}%`
+                              : `${100 / gridSizeY}%`,
+                            left: `${(placedItem.x * 100) / gridSizeX}%`,
+                            top: `${(placedItem.y * 100) / gridSizeY}%`,
+                          }}
+                          title={`${placedItem.item.name} on Floor ${floor.id}`}
+                        >
+                          {placedItem.item.name}
+                        </div>
+                      ))}
                     </div>
-                  )}
-
-                {/* Placed items for this specific floor */}
-                {floor.objects.map((placedItem, index) => (
-                  <div
-                    key={index}
-                    className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10 cursor-pointer`}
-                    style={{
-                      width: placedItem.isVertical
-                        ? `${100 / gridSizeX}%`
-                        : `${(placedItem.item.size * 100) / gridSizeX}%`,
-                      height: placedItem.isVertical
-                        ? `${(placedItem.item.size * 100) / gridSizeY}%`
-                        : `${100 / gridSizeY}%`,
-                      left: `${(placedItem.x * 100) / gridSizeX}%`,
-                      top: `${(placedItem.y * 100) / gridSizeY}%`,
-                    }}
-                    title={`${placedItem.item.name} on Floor ${floor.id}`}
-                  >
-                    {placedItem.item.name}
                   </div>
                 ))}
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
         {/* Add Floor Button */}
