@@ -75,6 +75,7 @@ export default function App() {
   const [floors, setFloors] = useState([{ id: 1, objects: [] }]);
   const [draggedItem, setDraggedItem] = useState(null as Item | null);
   const [hoverCell, setHoverCell] = useState({ x: -1, y: -1, floorId: -1 });
+  const [workers, setWorkers] = useState(0);
   const gridSizeX = 10;
   const gridSizeY = 5;
 
@@ -191,6 +192,42 @@ export default function App() {
     setFloors([...floors, { id: newFloorId, objects: [] }]);
   };
 
+  const addWorker = () => {
+    setWorkers(workers + 1);
+  };
+
+  const removeWorker = () => {
+    if (workers > 0) {
+      setWorkers(workers - 1);
+    }
+  };
+
+  const WorkerIcon = () => (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="text-gray-600"
+    >
+      <circle
+        cx="12"
+        cy="8"
+        r="3"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+      />
+      <path
+        d="M12 14c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6z"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+      />
+    </svg>
+  );
+
   return (
     <div className="flex flex-row gap-4 p-4 min-h-screen">
       {/* Furniture Items Panel */}
@@ -211,6 +248,64 @@ export default function App() {
               {item.name}
             </div>
           ))}
+        </div>
+
+        {/* Workers Section */}
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold mb-4">Workers</h2>
+
+          {/* Worker Controls */}
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={removeWorker}
+              disabled={workers === 0}
+              className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-sm"
+            >
+              -
+            </button>
+            <div className="flex items-center flex-row">
+              <label htmlFor="workers" className="mx-2 font-medium">
+                Workers:
+              </label>
+              <input
+                className="rounded-lg bg-gray-200 text-center"
+                type="number"
+                name="workers"
+                id="workers"
+                value={workers}
+                onChange={(e) => setWorkers(Number(e.target.value))}
+                onFocus={(e) => {
+                  if (workers === 0) {
+                    e.target.select();
+                  }
+                }}
+              />
+            </div>
+            <button
+              onClick={addWorker}
+              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Worker Icons Display */}
+          <div className="flex flex-wrap gap-2">
+            {Array.from({ length: workers }).map((_, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center p-2 bg-gray-100 rounded border"
+                title={`Worker ${index + 1}`}
+              >
+                <WorkerIcon />
+                <span className="text-xs mt-1">Worker {index + 1}</span>
+              </div>
+            ))}
+          </div>
+
+          {workers === 0 && (
+            <p className="text-gray-500 text-sm italic">No workers assigned</p>
+          )}
         </div>
       </div>
 
@@ -316,7 +411,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        {/* grass */}
+
         {/* Add Floor Button */}
         <div className="flex flex-col gap-2">
           <button
