@@ -649,9 +649,7 @@ export default function App() {
               <li>
                 • Each floor array contains furniture item names as strings
               </li>
-              <li>
-                • Available items: {items.map((item) => item.name).join(", ")}
-              </li>
+              <li>• An amount of workers greater than 0</li>
             </ul>
           </div>
 
