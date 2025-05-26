@@ -14,11 +14,14 @@ def run_SAT(request):
     data = json.loads(request.body.decode('utf-8'))
     items_l = data.get('items_list', [])
 
+
     # TODO: remove this
     # items_l = [[],['lampada', 'comodino', 'lampada']] 
 
     SAT_facts, SAT_result, SAT_STEPS = run_sat_solver(workers=int(man), items_l=items_l)
     facts = parse_SAT_facts(SAT_facts)
+
+    print('Received items list:', items_l)
 
     return JsonResponse({
         "is_satisfiable": SAT_result,

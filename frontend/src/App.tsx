@@ -123,6 +123,9 @@ export default function App() {
       backendData = convertToBackendFormat();
     }
 
+    // backendData = [[], ...backendData.items_list];
+    backendData.items_list = [[], ...backendData.items_list];
+
     console.log('Data to send to backend:', backendData);
 
     try {
