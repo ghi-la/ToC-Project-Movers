@@ -1,6 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from .pseudo_solution_refactored import run_sat_solver
-from .utils import parse_SAT_facts
+from .utils import parse_SAT_facts_by_time, parse_SAT_facts_by_workers
 import json
 from django.views.decorators.csrf import csrf_exempt
 
@@ -19,9 +19,7 @@ def run_SAT(request):
     # items_l = [[],['lampada', 'comodino', 'lampada']] 
 
     SAT_facts, SAT_result, SAT_STEPS = run_sat_solver(workers=int(man), items_l=items_l)
-    facts = parse_SAT_facts(SAT_facts)
-
-    print('Received items list:', items_l)
+    facts = parse_SAT_facts_by_time(SAT_facts)
 
     return JsonResponse({
         "is_satisfiable": SAT_result,

@@ -6,7 +6,7 @@ defSATsolver="z3"
 ## Change this to an executable SAT solver if z3 is not in your PATH or else
 ## Example (Linux): SATsolver="/home/user/z3-4.13/bin/z3"
 ## You can also include command-line options if necessary
-SATsolver=defSATsolver
+# SATsolver=defSATsolver
 
 import sys
 from subprocess import Popen
@@ -15,6 +15,9 @@ import re
 import random
 import os
 import shutil
+
+SATsolver = os.getenv("SAT_SOLVER_PATH", defSATsolver)
+
 
 gVarNumberToName = ["invalid"]
 gVarNameToNumber = {}
