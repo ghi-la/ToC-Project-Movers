@@ -1,5 +1,5 @@
-import React, { DragEvent, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import React, { DragEvent, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
 type Item = {
   size: number;
@@ -23,56 +23,56 @@ type Floor = {
 const items: Item[] = [
   {
     size: 3,
-    name: 'sofa',
-    color: 'bg-yellow-400 border border-2 border-yellow-500',
+    name: "sofa",
+    color: "bg-yellow-400 border border-2 border-yellow-500",
     isVertical: false,
   },
   {
     size: 2,
-    name: 'table',
-    color: 'bg-blue-500 border border-2 border-blue-600',
+    name: "table",
+    color: "bg-blue-500 border border-2 border-blue-600",
     isVertical: false,
   },
   {
     size: 1,
-    name: 'chair',
-    color: 'bg-red-500 border border-2 border-red-600',
+    name: "chair",
+    color: "bg-red-500 border border-2 border-red-600",
     isVertical: false,
   },
   {
     size: 1,
-    name: 'lamp',
-    color: 'bg-green-500 border border-2 border-green-600',
+    name: "lamp",
+    color: "bg-green-500 border border-2 border-green-600",
     isVertical: false,
   },
   {
     size: 2,
-    name: 'bed',
-    color: 'bg-purple-500 border border-2 border-purple-600',
+    name: "bed",
+    color: "bg-purple-500 border border-2 border-purple-600",
     isVertical: false,
   },
   {
     size: 3,
-    name: 'wardrobe',
-    color: 'bg-orange-500 border border-2 border-orange-600 text-[1vh]',
+    name: "wardrobe",
+    color: "bg-orange-500 border border-2 border-orange-600 text-[1vh]",
     isVertical: true,
   },
   {
     size: 2,
-    name: 'desk',
-    color: 'bg-pink-500 border border-2 border-pink-600',
+    name: "desk",
+    color: "bg-pink-500 border border-2 border-pink-600",
     isVertical: false,
   },
   {
     size: 1,
-    name: 'bookshelf',
-    color: 'bg-amber-700 border border-2 border-amber-600 text-[1vh]',
+    name: "bookshelf",
+    color: "bg-amber-700 border border-2 border-amber-600 text-[1vh]",
     isVertical: true,
   },
   {
     size: 1,
-    name: 'tv',
-    color: 'bg-gray-500 border border-2 border-gray-600',
+    name: "tv",
+    color: "bg-gray-500 border border-2 border-gray-600",
     isVertical: false,
   },
 ];
@@ -83,14 +83,13 @@ export default function App() {
   const [draggedItem, setDraggedItem] = useState(null as Item | null);
   const [hoverCell, setHoverCell] = useState({ x: -1, y: -1, floorId: -1 });
   const [workers, setWorkers] = useState(0);
-  const [manualJson, setManualJson] = useState('');
-  const [jsonError, setJsonError] = useState('');
+  const [manualJson, setManualJson] = useState("");
+  const [jsonError, setJsonError] = useState("");
   const gridSizeX = 10;
   const gridSizeY = 5;
 
-  const [SAT_solution, setSAT_solution] = useState('');
+  const [SAT_solution, setSAT_solution] = useState("");
 
-  // Convert floors data to backend format
   const convertToBackendFormat = () => {
     const floorsArray = floors.map((floor) =>
       floor.objects.map((obj) => obj.item.name)
@@ -101,22 +100,19 @@ export default function App() {
     };
   };
 
-  // Initialize manual JSON with current data
   React.useEffect(() => {
     setManualJson(JSON.stringify(convertToBackendFormat(), null, 2));
   }, [floors, workers]);
 
-  // Generate function that will call the backend
   const handleGenerate = async () => {
     let backendData;
 
-    // If we're in JSON tab, use manual JSON, otherwise use converted data
     if (defaultTab === 2) {
       try {
         backendData = JSON.parse(manualJson);
-        setJsonError('');
+        setJsonError("");
       } catch (error) {
-        setJsonError('Invalid JSON format');
+        setJsonError("Invalid JSON format");
         return;
       }
     } else {
@@ -140,9 +136,9 @@ export default function App() {
       // const result = await response.json();
       // console.log('Backend response:', result);
       fetch(`http://localhost:8000/runSAT?man=${workers}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(backendData),
       })
@@ -152,19 +148,10 @@ export default function App() {
           });
         })
         .catch((error: any) => {
-          console.error('Error during fetch:', error);
+          console.error("Error during fetch:", error);
         });
-
-      // For now, just log the data
-      // alert(
-      //   `Data ready for backend:\nItems List: ${JSON.stringify(
-      //     backendData.items_list,
-      //     null,
-      //     2
-      //   )}\nWorkers: ${workers}`
-      // );
     } catch (error) {
-      console.error('Error calling backend:', error);
+      console.error("Error calling backend:", error);
     }
   };
 
@@ -176,12 +163,12 @@ export default function App() {
 
       // Validate structure
       if (!parsed.items_list) {
-        setJsonError('items_list is required');
+        setJsonError("items_list is required");
         return;
       }
 
       if (!Array.isArray(parsed.items_list)) {
-        setJsonError('items_list must be an array');
+        setJsonError("items_list must be an array");
         return;
       }
 
@@ -192,64 +179,57 @@ export default function App() {
         }
 
         for (let j = 0; j < parsed.items_list[i].length; j++) {
-          if (typeof parsed.items_list[i][j] !== 'string') {
+          if (typeof parsed.items_list[i][j] !== "string") {
             setJsonError(`items_list[${i}][${j}] must be a string`);
             return;
           }
         }
       }
 
-      setJsonError('');
+      setJsonError("");
     } catch (error) {
-      setJsonError('Invalid JSON syntax');
+      setJsonError("Invalid JSON syntax");
     }
   };
 
   const resetJsonToCurrentState = () => {
     setManualJson(JSON.stringify(convertToBackendFormat(), null, 2));
-    setJsonError('');
+    setJsonError("");
   };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, item: Item) => {
     setDraggedItem(item);
-    e.dataTransfer.setData('text/plain', item.name);
+    e.dataTransfer.setData("text/plain", item.name);
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>, floorId: number) => {
     e.preventDefault();
     if (!draggedItem) return;
 
-    // Get grid cell dimensions based on container size
     const rect = e.currentTarget.getBoundingClientRect();
     const cellWidth = rect.width / gridSizeX;
     const cellHeight = rect.height / gridSizeY;
 
-    // Calculate which grid cell was dropped on
     const cellX = Math.floor((e.clientX - rect.left) / cellWidth);
     const cellY = Math.floor((e.clientY - rect.top) / cellHeight);
 
-    // Use the item's isVertical property
     const isItemVertical = draggedItem.isVertical || false;
 
-    // Calculate dimensions based on orientation
     const itemWidth = isItemVertical ? 1 : draggedItem.size;
     const itemHeight = isItemVertical ? draggedItem.size : 1;
 
-    // Check if placement would extend beyond grid bounds
     if (
       cellX + itemWidth > gridSizeX ||
       cellY + itemHeight > gridSizeY ||
       cellX < 0 ||
       cellY < 0
     ) {
-      console.log('Item would extend beyond grid borders');
+      console.log("Item would extend beyond grid borders");
       return;
     }
 
-    // Get objects for target floor
     const currentObjects = floors.find((f) => f.id === floorId)?.objects || [];
 
-    // Check for collisions with existing items
     const hasCollision = currentObjects.some((existingItem) => {
       const existingWidth = existingItem.isVertical
         ? 1
@@ -258,7 +238,6 @@ export default function App() {
         ? existingItem.item.size
         : 1;
 
-      // Check if any part of the item overlaps with existing item
       const overlaps = !(
         cellX >= existingItem.x + existingWidth ||
         cellX + itemWidth <= existingItem.x ||
@@ -270,11 +249,10 @@ export default function App() {
     });
 
     if (hasCollision) {
-      console.log('Cannot place item here - space already occupied');
+      console.log("Cannot place item here - space already occupied");
       return;
     }
 
-    // If no collision, place the item at the grid cell
     const newPlacedItem: ItemPosition = {
       item: draggedItem,
       x: cellX,
@@ -282,7 +260,6 @@ export default function App() {
       isVertical: isItemVertical,
     };
 
-    // Update the floor objects
     setFloors(
       floors.map((floor) => {
         if (floor.id === floorId) {
@@ -325,7 +302,7 @@ export default function App() {
 
   const deleteFloor = (floorId: number) => {
     if (floors.length <= 1) {
-      console.log('Cannot delete the last floor');
+      console.log("Cannot delete the last floor");
       return;
     }
 
@@ -383,8 +360,8 @@ export default function App() {
         <div
           onClick={() => setDefaultTab(1)}
           className={twMerge(
-            defaultTab === 1 ? 'bg-white' : 'bg-gray-200',
-            'border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer'
+            defaultTab === 1 ? "bg-white" : "bg-gray-200",
+            "border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer"
           )}
         >
           Manual
@@ -392,8 +369,8 @@ export default function App() {
         <div
           onClick={() => setDefaultTab(2)}
           className={twMerge(
-            defaultTab === 2 ? 'bg-white' : 'bg-gray-200',
-            'border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer'
+            defaultTab === 2 ? "bg-white" : "bg-gray-200",
+            "border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer"
           )}
         >
           JSON
@@ -703,10 +680,10 @@ export default function App() {
               value={manualJson}
               onChange={(e) => validateAndUpdateJson(e.target.value)}
               className={`flex-grow p-4 border rounded-lg font-mono text-sm resize-none ${
-                jsonError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                jsonError ? "border-red-300 bg-red-50" : "border-gray-300"
               }`}
               placeholder="Enter JSON data here..."
-              style={{ minHeight: '400px' }}
+              style={{ minHeight: "400px" }}
             />
           </div>
 
