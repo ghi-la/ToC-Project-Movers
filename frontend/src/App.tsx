@@ -1,5 +1,5 @@
-import React, { DragEvent, useState } from "react";
-import { twMerge } from "tailwind-merge";
+import React, { DragEvent, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 type Item = {
   size: number;
@@ -23,56 +23,56 @@ type Floor = {
 const items: Item[] = [
   {
     size: 3,
-    name: "sofa",
-    color: "bg-yellow-400 border border-2 border-yellow-500",
+    name: 'sofa',
+    color: 'bg-yellow-400 border border-2 border-yellow-500',
     isVertical: false,
   },
   {
     size: 2,
-    name: "table",
-    color: "bg-blue-500 border border-2 border-blue-600",
+    name: 'table',
+    color: 'bg-blue-500 border border-2 border-blue-600',
     isVertical: false,
   },
   {
     size: 1,
-    name: "chair",
-    color: "bg-red-500 border border-2 border-red-600",
+    name: 'chair',
+    color: 'bg-red-500 border border-2 border-red-600',
     isVertical: false,
   },
   {
     size: 1,
-    name: "lamp",
-    color: "bg-green-500 border border-2 border-green-600",
+    name: 'lamp',
+    color: 'bg-green-500 border border-2 border-green-600',
     isVertical: false,
   },
   {
     size: 2,
-    name: "bed",
-    color: "bg-purple-500 border border-2 border-purple-600",
+    name: 'bed',
+    color: 'bg-purple-500 border border-2 border-purple-600',
     isVertical: false,
   },
   {
     size: 3,
-    name: "wardrobe",
-    color: "bg-orange-500 border border-2 border-orange-600 text-[1vh]",
+    name: 'wardrobe',
+    color: 'bg-orange-500 border border-2 border-orange-600 text-[1vh]',
     isVertical: true,
   },
   {
     size: 2,
-    name: "desk",
-    color: "bg-pink-500 border border-2 border-pink-600",
+    name: 'desk',
+    color: 'bg-pink-500 border border-2 border-pink-600',
     isVertical: false,
   },
   {
     size: 1,
-    name: "bookshelf",
-    color: "bg-amber-700 border border-2 border-amber-600 text-[1vh]",
+    name: 'bookshelf',
+    color: 'bg-amber-700 border border-2 border-amber-600 text-[1vh]',
     isVertical: true,
   },
   {
     size: 1,
-    name: "tv",
-    color: "bg-gray-500 border border-2 border-gray-600",
+    name: 'tv',
+    color: 'bg-gray-500 border border-2 border-gray-600',
     isVertical: false,
   },
 ];
@@ -82,13 +82,13 @@ export default function App() {
   const [floors, setFloors] = useState<Floor[]>([{ id: 1, objects: [] }]);
   const [draggedItem, setDraggedItem] = useState(null as Item | null);
   const [hoverCell, setHoverCell] = useState({ x: -1, y: -1, floorId: -1 });
-  const [workers, setWorkers] = useState(0);
-  const [manualJson, setManualJson] = useState("");
-  const [jsonError, setJsonError] = useState("");
+  const [workers, setWorkers] = useState(1);
+  const [manualJson, setManualJson] = useState('');
+  const [jsonError, setJsonError] = useState('');
   const gridSizeX = 10;
   const gridSizeY = 5;
 
-  const [SAT_solution, setSAT_solution] = useState("");
+  const [SAT_solution, setSAT_solution] = useState(null as string | null);
 
   const convertToBackendFormat = () => {
     const floorsArray = floors.map((floor) =>
@@ -110,9 +110,9 @@ export default function App() {
     if (defaultTab === 2) {
       try {
         backendData = JSON.parse(manualJson);
-        setJsonError("");
+        setJsonError('');
       } catch (error) {
-        setJsonError("Invalid JSON format");
+        setJsonError('Invalid JSON format');
         return;
       }
     } else {
@@ -136,22 +136,22 @@ export default function App() {
       // const result = await response.json();
       // console.log('Backend response:', result);
       fetch(`http://localhost:8000/runSAT?man=${workers}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(backendData),
       })
         .then((response: any) => {
           response.text().then((text: string) => {
-            setSAT_solution(text);
+            setSAT_solution(JSON.parse(text));
           });
         })
         .catch((error: any) => {
-          console.error("Error during fetch:", error);
+          console.error('Error during fetch:', error);
         });
     } catch (error) {
-      console.error("Error calling backend:", error);
+      console.error('Error calling backend:', error);
     }
   };
 
@@ -163,12 +163,12 @@ export default function App() {
 
       // Validate structure
       if (!parsed.items_list) {
-        setJsonError("items_list is required");
+        setJsonError('items_list is required');
         return;
       }
 
       if (!Array.isArray(parsed.items_list)) {
-        setJsonError("items_list must be an array");
+        setJsonError('items_list must be an array');
         return;
       }
 
@@ -179,27 +179,27 @@ export default function App() {
         }
 
         for (let j = 0; j < parsed.items_list[i].length; j++) {
-          if (typeof parsed.items_list[i][j] !== "string") {
+          if (typeof parsed.items_list[i][j] !== 'string') {
             setJsonError(`items_list[${i}][${j}] must be a string`);
             return;
           }
         }
       }
 
-      setJsonError("");
+      setJsonError('');
     } catch (error) {
-      setJsonError("Invalid JSON syntax");
+      setJsonError('Invalid JSON syntax');
     }
   };
 
   const resetJsonToCurrentState = () => {
     setManualJson(JSON.stringify(convertToBackendFormat(), null, 2));
-    setJsonError("");
+    setJsonError('');
   };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, item: Item) => {
     setDraggedItem(item);
-    e.dataTransfer.setData("text/plain", item.name);
+    e.dataTransfer.setData('text/plain', item.name);
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>, floorId: number) => {
@@ -224,7 +224,7 @@ export default function App() {
       cellX < 0 ||
       cellY < 0
     ) {
-      console.log("Item would extend beyond grid borders");
+      console.log('Item would extend beyond grid borders');
       return;
     }
 
@@ -249,7 +249,7 @@ export default function App() {
     });
 
     if (hasCollision) {
-      console.log("Cannot place item here - space already occupied");
+      console.log('Cannot place item here - space already occupied');
       return;
     }
 
@@ -302,7 +302,7 @@ export default function App() {
 
   const deleteFloor = (floorId: number) => {
     if (floors.length <= 1) {
-      console.log("Cannot delete the last floor");
+      console.log('Cannot delete the last floor');
       return;
     }
 
@@ -360,8 +360,8 @@ export default function App() {
         <div
           onClick={() => setDefaultTab(1)}
           className={twMerge(
-            defaultTab === 1 ? "bg-white" : "bg-gray-200",
-            "border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer"
+            defaultTab === 1 ? 'bg-white' : 'bg-gray-200',
+            'border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer'
           )}
         >
           Manual
@@ -369,8 +369,8 @@ export default function App() {
         <div
           onClick={() => setDefaultTab(2)}
           className={twMerge(
-            defaultTab === 2 ? "bg-white" : "bg-gray-200",
-            "border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer"
+            defaultTab === 2 ? 'bg-white' : 'bg-gray-200',
+            'border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer'
           )}
         >
           JSON
@@ -406,7 +406,7 @@ export default function App() {
               <div className="flex items-center gap-2 mb-4">
                 <button
                   onClick={removeWorker}
-                  disabled={workers === 0}
+                  disabled={workers === 1}
                   className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-sm"
                 >
                   -
@@ -456,6 +456,50 @@ export default function App() {
                   No workers assigned
                 </p>
               )}
+            </div>
+
+            {/* Results area */}
+            <div>
+              <h2 className="text-lg font-semibold mb-4">Results</h2>
+              <div className="p-4 bg-gray-50 rounded border border-gray-200">
+                {SAT_solution ? (
+                  <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {SAT_solution.is_satisfiable} in {SAT_solution.steps}{' '}
+                    step(s)
+                    <br />
+                    {SAT_solution.facts &&
+                      Object.entries(SAT_solution.facts).map(
+                        ([timestamp, fact], idx) => (
+                          <div key={timestamp}>
+                            <strong>Step {timestamp}:</strong>{' '}
+                            <ul>
+                              {fact.map((f: any, i: number) => (
+                                <li>
+                                  {f.worker.replace('v_', 'Worker ')}{' '}
+                                  {f.action === 'goesTo'
+                                    ? `goes from floor ${f.from_floor} to floor ${f.to_floor}`
+                                    : f.action === 'pickingUp'
+                                    ? `picks up ${f.object
+                                        .split('_')[0]
+                                        .replace(/\d+/g, '')}`
+                                    : f.action === 'transports'
+                                    ? `transports ${f.object
+                                        .split('_')[0]
+                                        .replace(/\d+/g, '')} from floor ${
+                                        f.from_floor
+                                      } to floor ${f.to_floor}`
+                                    : f.action}
+                                </li>
+                              ))}{' '}
+                            </ul>
+                          </div>
+                        )
+                      )}
+                  </pre>
+                ) : (
+                  <p className="text-gray-500">No results yet</p>
+                )}
+              </div>
             </div>
           </div>
           {/* Building Visualization Panel */}
@@ -680,10 +724,10 @@ export default function App() {
               value={manualJson}
               onChange={(e) => validateAndUpdateJson(e.target.value)}
               className={`flex-grow p-4 border rounded-lg font-mono text-sm resize-none ${
-                jsonError ? "border-red-300 bg-red-50" : "border-gray-300"
+                jsonError ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder="Enter JSON data here..."
-              style={{ minHeight: "400px" }}
+              style={{ minHeight: '400px' }}
             />
           </div>
 
@@ -694,7 +738,7 @@ export default function App() {
               name="wrks"
               id="wrks"
               value={workers}
-              onChange={(e) => setWorkers(Number(e.target.value) || 0)}
+              onChange={(e) => setWorkers(Number(e.target.value) || 1)}
               placeholder="How many workers?"
               className="bg-gray-100 rounded-lg border border-gray-300 p-2 text-sm"
             />
