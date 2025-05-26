@@ -2,10 +2,13 @@ from django.http import HttpResponse, JsonResponse
 from .pseudo_solution_refactored import run_sat_solver
 from .utils import parse_SAT_facts
 import json
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def hello_world(request):
     return HttpResponse("Hello, world!")
 
+@csrf_exempt
 def run_SAT(request):
     man = request.GET.get('man')
     data = json.loads(request.body.decode('utf-8'))
