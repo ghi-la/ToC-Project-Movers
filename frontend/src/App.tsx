@@ -340,293 +340,48 @@ export default function App() {
   );
 
   const AnimatedSolutionVisualization = ({ solution }: { solution: any }) => {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [workerStates, setWorkerStates] = useState<{
-      [key: string]: { floor: number; carrying?: string };
-    }>({});
-    const [buildingState, setBuildingState] = useState<{
-      [key: string]: { floor: number; originalFloor: number };
-    }>({});
-
-    // Initialize states based on initial floor configuration
-    React.useEffect(() => {
-      if (!solution?.facts) return;
-
-      // Initialize worker states (all start at floor 0 - ground)
-      const initialWorkerStates: {
-        [key: string]: { floor: number; carrying?: string };
-      } = {};
-      for (let i = 0; i < workers; i++) {
-        initialWorkerStates[`v_${i}`] = { floor: 0 };
-      }
-
-      // Initialize object states based on current floor configuration
-      const initialBuildingState: {
-        [key: string]: { floor: number; originalFloor: number };
-      } = {};
-      floors.forEach((floor) => {
-        floor.objects.forEach((obj, index) => {
-          const objectKey = `${obj.item.name}${index + 1}_floor${floor.id}`;
-          initialBuildingState[objectKey] = {
-            floor: floor.id,
-            originalFloor: floor.id,
-          };
-        });
-      });
-
-      setWorkerStates(initialWorkerStates);
-      setBuildingState(initialBuildingState);
-      setCurrentStep(0);
-    }, [solution, floors, workers]);
-
-    // Apply actions up to current step
-    React.useEffect(() => {
-      if (!solution?.facts) return;
-
-      const steps = Object.keys(solution.facts)
-        .map(Number)
-        .sort((a, b) => a - b);
-
-      // Reset to initial states
-      const newWorkerStates: {
-        [key: string]: { floor: number; carrying?: string };
-      } = {};
-      for (let i = 0; i < workers; i++) {
-        newWorkerStates[`v_${i}`] = { floor: 0 };
-      }
-
-      const newBuildingState: {
-        [key: string]: { floor: number; originalFloor: number };
-      } = {};
-      floors.forEach((floor) => {
-        floor.objects.forEach((obj, index) => {
-          const objectKey = `${obj.item.name}${index + 1}_floor${floor.id}`;
-          newBuildingState[objectKey] = {
-            floor: floor.id,
-            originalFloor: floor.id,
-          };
-        });
-      });
-
-      // Apply all actions up to current step
-      for (let i = 0; i <= currentStep && i < steps.length; i++) {
-        const stepActions = solution.facts[steps[i]];
-        stepActions.forEach((action: any) => {
-          const worker = action.worker;
-
-          if (action.action === "goesTo") {
-            newWorkerStates[worker] = {
-              ...newWorkerStates[worker],
-              floor: parseInt(action.to_floor),
-            };
-          } else if (action.action === "pickingUp") {
-            newWorkerStates[worker] = {
-              ...newWorkerStates[worker],
-              carrying: action.object,
-            };
-          } else if (action.action === "transports") {
-            // Move object to destination floor
-            newBuildingState[action.object] = {
-              ...newBuildingState[action.object],
-              floor: parseInt(action.to_floor),
-            };
-            // Worker stops carrying the object
-            delete newWorkerStates[worker].carrying;
-          }
-        });
-      }
-
-      setWorkerStates(newWorkerStates);
-      setBuildingState(newBuildingState);
-    }, [currentStep, solution, floors]);
-
-    // Auto-play functionality
-    React.useEffect(() => {
-      if (!isPlaying || !solution?.facts) return;
-
-      const steps = Object.keys(solution.facts)
-        .map(Number)
-        .sort((a, b) => a - b);
-      const interval = setInterval(() => {
-        setCurrentStep((prev) => {
-          if (prev >= steps.length - 1) {
-            setIsPlaying(false);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 2000); // 2 seconds per step
-
-      return () => clearInterval(interval);
-    }, [isPlaying, solution]);
-
+    // Remove all animation state and logic from this component
     if (!solution?.facts) return null;
-
-    const steps = Object.keys(solution.facts)
-      .map(Number)
-      .sort((a, b) => a - b);
-    const currentStepNumber = steps[currentStep] || 0;
-    const currentActions = solution.facts[currentStepNumber] || [];
 
     return (
       <div className="mt-6 p-4 bg-gray-50 rounded border">
-        <h3 className="text-lg font-semibold mb-4">Solution Animation</h3>
+        <h3 className="text-lg font-semibold mb-4">Solution Available</h3>
 
-        {/* Controls */}
-        <div className="flex items-center gap-4 mb-4">
-          <button
-            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-            disabled={currentStep === 0}
-            className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-3 py-1 rounded"
-          >
-            Previous
-          </button>
-
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
-          >
-            {isPlaying ? "Pause" : "Play"}
-          </button>
-
-          <button
-            onClick={() =>
-              setCurrentStep(Math.min(steps.length - 1, currentStep + 1))
-            }
-            disabled={currentStep >= steps.length - 1}
-            className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-3 py-1 rounded"
-          >
-            Next
-          </button>
-
-          <span className="text-sm text-gray-600">
-            Step {currentStep + 1} of {steps.length} (Time: {currentStepNumber})
-          </span>
+        <div className="mb-4">
+          <div className="text-sm text-gray-700">
+            <strong>Status:</strong> {solution.is_satisfiable} in{" "}
+            {solution.steps} step(s)
+          </div>
         </div>
 
-        {/* Current Actions Display */}
-        <div className="mb-4 p-3 bg-blue-50 rounded">
-          <h4 className="font-semibold text-blue-800 mb-2">Current Actions:</h4>
-          {currentActions.length > 0 ? (
-            <ul className="text-sm text-blue-700">
-              {currentActions.map((action: any, idx: number) => (
-                <li key={idx}>
-                  <strong>{action.worker.replace("v_", "Worker ")}</strong>{" "}
-                  {action.action === "goesTo"
-                    ? `moves from floor ${action.from_floor} to floor ${action.to_floor}`
-                    : action.action === "pickingUp"
-                    ? `picks up ${action.object
-                        .split("_")[0]
-                        .replace(/\d+/g, "")}`
-                    : action.action === "transports"
-                    ? `delivers ${action.object
-                        .split("_")[0]
-                        .replace(/\d+/g, "")} to floor ${action.to_floor}`
-                    : action.action}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-500">No actions in this step</p>
-          )}
+        {/* Only show the View Full Animation Button */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowFullScreenAnimation(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+              <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+              <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+            </svg>
+            View Full Animation
+          </button>
         </div>
 
-        {/* Visualization */}
-        <div className="flex gap-6">
-          {/* Building Visualization */}
-          <div className="flex-1">
-            <h4 className="font-semibold mb-2">Building State</h4>
-            <div className="w-[300px]">
-              <div className="flex flex-col-reverse">
-                {/* Ground floor */}
-                <div className="h-20 flex items-end justify-center bg-gray-300 border-2 border-gray-700 mb-1">
-                  <div className="text-xs bg-gray-800 text-white px-2 py-1 rounded">
-                    Ground
-                  </div>
-                </div>
-
-                {/* Building floors */}
-                {floors.map((floor) => (
-                  <div key={floor.id} className="relative mb-1">
-                    <div className="h-2 w-full bg-gray-600"></div>
-                    <div className="relative w-full h-16 border-2 border-gray-300 bg-white">
-                      {/* Floor label */}
-                      <div className="absolute top-1 right-1 text-xs bg-gray-800 text-white px-2 py-1 rounded">
-                        Floor {floor.id}
-                      </div>
-
-                      {/* Objects on this floor */}
-                      <div className="flex flex-wrap gap-1 p-2">
-                        {Object.entries(buildingState)
-                          .filter(
-                            ([_, state]) =>
-                              (
-                                state as {
-                                  floor: number;
-                                  originalFloor: number;
-                                }
-                              ).floor === floor.id
-                          )
-                          .map(([objectKey, _]) => {
-                            const objectName = objectKey
-                              .split("_")[0]
-                              .replace(/\d+/g, "");
-                            const originalItem = items.find(
-                              (item) => item.name === objectName
-                            );
-                            return (
-                              <div
-                                key={objectKey}
-                                className={`${
-                                  originalItem?.color || "bg-gray-400"
-                                } text-xs px-2 py-1 rounded`}
-                                title={objectKey}
-                              >
-                                {objectName}
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Workers Panel */}
-          <div className="w-64">
-            <h4 className="font-semibold mb-2">Workers</h4>
-            <div className="space-y-3">
-              {Object.entries(workerStates).map(([workerId, state]) => (
-                <div key={workerId} className="p-3 bg-white border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <WorkerIcon />
-                    <span className="font-medium">
-                      {workerId.replace("v_", "Worker ")}
-                    </span>
-                  </div>
-
-                  <div className="text-sm text-gray-600">
-                    <div>
-                      Location: Floor{" "}
-                      {(state as { floor: number; carrying?: string }).floor}
-                    </div>
-                    {(state as { floor: number; carrying?: string })
-                      .carrying && (
-                      <div className="text-blue-600 font-medium">
-                        Carrying:{" "}
-                        {(state as { floor: number; carrying?: string })
-                          .carrying!.split("_")[0]
-                          .replace(/\d+/g, "")}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="text-sm text-gray-600">
+          Click the button above to view the animated solution with step-by-step
+          worker movements.
         </div>
       </div>
     );
@@ -879,13 +634,13 @@ export default function App() {
 
         {/* Large Visualization */}
         <div className="flex-1 flex gap-8">
-          {/* Building Visualization - Larger */}
+          {/* Building Visualization - Larger with Workers on Floors */}
           <div className="flex-1">
             <h3 className="text-xl font-semibold mb-4">Building State</h3>
             <div className="w-full max-w-2xl mx-auto">
               <div className="flex flex-col-reverse">
-                {/* Ground floor */}
-                <div className="h-32 flex items-end justify-center bg-gray-300 border-4 border-gray-700 mb-2">
+                {/* Ground floor with workers */}
+                <div className="h-32 flex items-end justify-between bg-gray-300 border-4 border-gray-700 mb-2 px-4">
                   <div className="h-14 pl-[2px] w-10 bg-orange-800 border-4 border-orange-900 flex flex-row flex-wrap gap-1">
                     <div className="w-[40%] h-[45%] bg-orange-600"></div>
                     <div className="w-[40%] h-[45%] bg-orange-600"></div>
@@ -893,9 +648,44 @@ export default function App() {
                     <div className="w-[40%] h-[45%] bg-orange-600"></div>
                     <div className="relative top-[-60%] left-[70%] w-2 h-2 rounded-full bg-yellow-200"></div>
                   </div>
+
+                  {/* Workers on ground floor */}
+                  <div className="flex gap-2 mb-2">
+                    {Object.entries(workerStates)
+                      .filter(
+                        ([_, state]) =>
+                          (state as { floor: number; carrying?: string })
+                            .floor === 0
+                      )
+                      .map(([workerId, state]) => (
+                        <div
+                          key={workerId}
+                          className="flex flex-col items-center"
+                        >
+                          <div className="bg-white p-1 rounded-full border-2 border-gray-800">
+                            <WorkerIcon />
+                          </div>
+                          <span className="text-xs font-bold bg-white px-1 rounded">
+                            {workerId.replace("v_", "W")}
+                          </span>
+                          {(state as { floor: number; carrying?: string })
+                            .carrying && (
+                            <div className="text-xs bg-blue-200 px-1 rounded mt-1">
+                              {(state as { floor: number; carrying?: string })
+                                .carrying!.split("_")[0]
+                                .replace(/\d+/g, "")}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+
+                  <div className="text-lg bg-gray-800 text-white px-4 py-2 rounded font-bold">
+                    Ground
+                  </div>
                 </div>
 
-                {/* Building floors */}
+                {/* Building floors with workers */}
                 {floors.map((floor) => (
                   <div key={floor.id} className="relative mb-2">
                     <div className="h-4 w-full bg-gray-600"></div>
@@ -905,8 +695,44 @@ export default function App() {
                         Floor {floor.id}
                       </div>
 
+                      {/* Workers on this floor */}
+                      <div className="absolute top-2 left-2 flex gap-2">
+                        {Object.entries(workerStates)
+                          .filter(
+                            ([_, state]) =>
+                              (state as { floor: number; carrying?: string })
+                                .floor === floor.id
+                          )
+                          .map(([workerId, state]) => (
+                            <div
+                              key={workerId}
+                              className="flex flex-col items-center"
+                            >
+                              <div className="bg-white p-1 rounded-full border-2 border-gray-800 shadow-lg">
+                                <WorkerIcon />
+                              </div>
+                              <span className="text-xs font-bold bg-white px-1 rounded">
+                                {workerId.replace("v_", "W")}
+                              </span>
+                              {(state as { floor: number; carrying?: string })
+                                .carrying && (
+                                <div className="text-xs bg-blue-200 px-1 rounded mt-1">
+                                  {(
+                                    state as {
+                                      floor: number;
+                                      carrying?: string;
+                                    }
+                                  )
+                                    .carrying!.split("_")[0]
+                                    .replace(/\d+/g, "")}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+
                       {/* Objects on this floor */}
-                      <div className="flex flex-wrap gap-2 p-4">
+                      <div className="flex flex-wrap gap-2 p-4 pt-16">
                         {Object.entries(buildingState)
                           .filter(
                             ([_, state]) =>
@@ -964,8 +790,14 @@ export default function App() {
 
                   <div className="text-gray-600">
                     <div className="text-lg mb-2">
-                      <strong>Location:</strong> Floor{" "}
-                      {(state as { floor: number; carrying?: string }).floor}
+                      <strong>Location:</strong>{" "}
+                      {(state as { floor: number; carrying?: string }).floor ===
+                      0
+                        ? "Ground Floor"
+                        : `Floor ${
+                            (state as { floor: number; carrying?: string })
+                              .floor
+                          }`}
                     </div>
                     {(state as { floor: number; carrying?: string })
                       .carrying && (
@@ -1099,49 +931,15 @@ export default function App() {
             {/* Results area */}
             <div>
               <h2 className="text-lg font-semibold mb-4">Results</h2>
-              <div className="p-4 bg-gray-50 rounded border border-gray-200">
-                {SAT_solution ? (
-                  <>
-                    <div className="mb-4">
-                      <div className="text-sm text-gray-700">
-                        <strong>Status:</strong> {SAT_solution.is_satisfiable}{" "}
-                        in {SAT_solution.steps} step(s)
-                      </div>
-                    </div>
-
-                    {/* View Full Animation Button */}
-                    <div className="mb-4">
-                      <button
-                        onClick={() => setShowFullScreenAnimation(true)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-                          <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-                          <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-                          <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-                        </svg>
-                        View Full Animation
-                      </button>
-                    </div>
-
-                    {SAT_solution.facts && (
-                      <AnimatedSolutionVisualization solution={SAT_solution} />
-                    )}
-                  </>
-                ) : (
-                  <p className="text-gray-500">No results yet</p>
-                )}
-              </div>
+              {SAT_solution ? (
+                <>
+                  {SAT_solution.facts && (
+                    <AnimatedSolutionVisualization solution={SAT_solution} />
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-500">No results yet</p>
+              )}
             </div>
           </div>
           {/* Building Visualization Panel */}
