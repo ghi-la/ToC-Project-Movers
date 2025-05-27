@@ -511,23 +511,45 @@ export default function App() {
           const worker = action.worker;
 
           if (action.action === "goesTo") {
+            // Worker moves from one floor to another without carrying anything
             newWorkerStates[worker] = {
               ...newWorkerStates[worker],
               floor: parseInt(action.to_floor),
             };
           } else if (action.action === "pickingUp") {
+            // Worker picks up an object - object disappears from floor and worker carries it
             newWorkerStates[worker] = {
               ...newWorkerStates[worker],
               carrying: action.object,
             };
+            // Object is no longer visible on any floor (worker has it)
+            if (newBuildingState[action.object]) {
+              newBuildingState[action.object] = {
+                ...newBuildingState[action.object],
+                floor: -1, // -1 means object is being carried (not on any floor)
+              };
+            }
           } else if (action.action === "transports") {
-            // Move object to destination floor
-            newBuildingState[action.object] = {
-              ...newBuildingState[action.object],
-              floor: parseInt(action.to_floor),
+            // Worker moves with an object from current floor to destination floor
+            const destinationFloor = parseInt(action.to_floor);
+            newWorkerStates[worker] = {
+              ...newWorkerStates[worker],
+              floor: destinationFloor,
             };
-            // Worker stops carrying the object
-            delete newWorkerStates[worker].carrying;
+
+            // Only deploy the object if the worker reaches floor 0 (outside building)
+            if (destinationFloor === 0) {
+              // Object is deployed outside the building (floor 0)
+              if (newBuildingState[action.object]) {
+                newBuildingState[action.object] = {
+                  ...newBuildingState[action.object],
+                  floor: 0, // Object is now outside the building
+                };
+              }
+              // Worker stops carrying the object (it's now deployed outside)
+              delete newWorkerStates[worker].carrying;
+            }
+            // If destination is not floor 0, worker keeps carrying the object
           }
         });
       }
@@ -617,11 +639,21 @@ export default function App() {
                       : action.action === "pickingUp"
                       ? `picks up ${action.object
                           .split("_")[0]
-                          .replace(/\d+/g, "")}`
+                          .replace(/\d+/g, "")} from floor ${
+                          action.from_floor || "current floor"
+                        }`
                       : action.action === "transports"
-                      ? `delivers ${action.object
-                          .split("_")[0]
-                          .replace(/\d+/g, "")} to floor ${action.to_floor}`
+                      ? parseInt(action.to_floor) === 0
+                        ? `transports ${action.object
+                            .split("_")[0]
+                            .replace(/\d+/g, "")} from floor ${
+                            action.from_floor
+                          } to outside building (deploys it)`
+                        : `transports ${action.object
+                            .split("_")[0]
+                            .replace(/\d+/g, "")} from floor ${
+                            action.from_floor
+                          } to floor ${action.to_floor} (still carrying)`
                       : action.action}
                   </li>
                 ))}
@@ -639,18 +671,9 @@ export default function App() {
             <h3 className="text-xl font-semibold mb-4">Building State</h3>
             <div className="w-full max-w-2xl mx-auto">
               <div className="flex flex-col-reverse">
-                {/* Ground floor with workers */}
-                <div className="h-32 flex items-end justify-between bg-gray-300 border-4 border-gray-700 mb-2 px-4">
-                  <div className="h-14 pl-[2px] w-10 bg-orange-800 border-4 border-orange-900 flex flex-row flex-wrap gap-1">
-                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
-                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
-                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
-                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
-                    <div className="relative top-[-60%] left-[70%] w-2 h-2 rounded-full bg-yellow-200"></div>
-                  </div>
-
-                  {/* Workers on ground floor */}
-                  <div className="flex gap-2 mb-2">
+                {/* Workers on ground level (outside building) */}
+                <div className="h-16 flex items-center justify-center bg-green-200 border-2 border-green-400 mb-2 px-4">
+                  <div className="flex gap-4">
                     {Object.entries(workerStates)
                       .filter(
                         ([_, state]) =>
@@ -662,15 +685,16 @@ export default function App() {
                           key={workerId}
                           className="flex flex-col items-center"
                         >
-                          <div className="bg-white p-1 rounded-full border-2 border-gray-800">
+                          <div className="bg-white p-2 rounded-full border-2 border-gray-800 shadow-lg">
                             <WorkerIcon />
                           </div>
-                          <span className="text-xs font-bold bg-white px-1 rounded">
-                            {workerId.replace("v_", "W")}
+                          <span className="text-xs font-bold bg-white px-2 py-1 rounded mt-1">
+                            {workerId.replace("v_", "Worker ")}
                           </span>
                           {(state as { floor: number; carrying?: string })
                             .carrying && (
-                            <div className="text-xs bg-blue-200 px-1 rounded mt-1">
+                            <div className="text-xs bg-blue-200 px-2 py-1 rounded mt-1">
+                              Carrying:{" "}
                               {(state as { floor: number; carrying?: string })
                                 .carrying!.split("_")[0]
                                 .replace(/\d+/g, "")}
@@ -678,10 +702,71 @@ export default function App() {
                           )}
                         </div>
                       ))}
+                    {Object.entries(workerStates).filter(
+                      ([_, state]) =>
+                        (state as { floor: number; carrying?: string })
+                          .floor === 0
+                    ).length === 0 && (
+                      <div className="text-gray-500 italic">
+                        No workers on ground level
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Show deployed objects outside the building */}
+                  <div className="ml-8 flex flex-wrap gap-2">
+                    <div className="text-sm font-semibold text-green-800 mr-2">
+                      Deployed Items:
+                    </div>
+                    {Object.entries(buildingState)
+                      .filter(
+                        ([_, state]) =>
+                          (state as { floor: number; originalFloor: number })
+                            .floor === 0
+                      )
+                      .map(([objectKey, _]) => {
+                        const objectName = objectKey
+                          .split("_")[0]
+                          .replace(/\d+/g, "");
+                        const originalItem = items.find(
+                          (item) => item.name === objectName
+                        );
+                        return (
+                          <div
+                            key={objectKey}
+                            className={`${
+                              originalItem?.color || "bg-gray-400"
+                            } text-xs px-2 py-1 rounded font-medium shadow-lg`}
+                            title={`${objectName} - Deployed outside building`}
+                          >
+                            {objectName}
+                          </div>
+                        );
+                      })}
+                    {Object.entries(buildingState).filter(
+                      ([_, state]) =>
+                        (state as { floor: number; originalFloor: number })
+                          .floor === 0
+                    ).length === 0 && (
+                      <div className="text-gray-500 italic text-xs">
+                        No items deployed yet
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ground floor (building base) */}
+                <div className="h-32 flex items-end justify-center bg-gray-300 border-4 border-gray-700 mb-2 px-4">
+                  <div className="h-14 pl-[2px] w-10 bg-orange-800 border-4 border-orange-900 flex flex-row flex-wrap gap-1">
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="w-[40%] h-[45%] bg-orange-600"></div>
+                    <div className="relative top-[-60%] left-[70%] w-2 h-2 rounded-full bg-yellow-200"></div>
                   </div>
 
                   <div className="text-lg bg-gray-800 text-white px-4 py-2 rounded font-bold">
-                    Ground
+                    Ground Floor
                   </div>
                 </div>
 
@@ -793,7 +878,7 @@ export default function App() {
                       <strong>Location:</strong>{" "}
                       {(state as { floor: number; carrying?: string }).floor ===
                       0
-                        ? "Ground Floor"
+                        ? "Ground Level (Outside Building)"
                         : `Floor ${
                             (state as { floor: number; carrying?: string })
                               .floor
