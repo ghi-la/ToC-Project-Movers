@@ -309,6 +309,20 @@ export default function App() {
     );
   };
 
+  const deleteObject = (floorId: number, objectIndex: number) => {
+    setFloors(
+      floors.map((floor) => {
+        if (floor.id === floorId) {
+          return {
+            ...floor,
+            objects: floor.objects.filter((_, index) => index !== objectIndex),
+          };
+        }
+        return floor;
+      })
+    );
+  };
+
   const addWorker = () => {
     setWorkers(workers + 1);
   };
@@ -1151,7 +1165,7 @@ export default function App() {
                           {floor.objects.map((placedItem, index) => (
                             <div
                               key={index}
-                              className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10 cursor-pointer`}
+                              className={`${placedItem.item.color} text-center flex items-center justify-center text-xs absolute z-10 cursor-pointer hover:opacity-80 transition-opacity`}
                               style={{
                                 width: placedItem.isVertical
                                   ? `${100 / gridSizeX}%`
@@ -1166,7 +1180,11 @@ export default function App() {
                                 left: `${(placedItem.x * 100) / gridSizeX}%`,
                                 top: `${(placedItem.y * 100) / gridSizeY}%`,
                               }}
-                              title={`${placedItem.item.name} on Floor ${floor.id}`}
+                              title={`${placedItem.item.name} on Floor ${floor.id} - Click to delete`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteObject(floor.id, index);
+                              }}
                             >
                               {placedItem.item.name}
                             </div>
