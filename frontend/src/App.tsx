@@ -86,6 +86,7 @@ export default function App() {
   const [manualJson, setManualJson] = useState("");
   const [jsonError, setJsonError] = useState("");
   const [showFullScreenAnimation, setShowFullScreenAnimation] = useState(false);
+  const [loading, setLoading] = useState(false);
   const gridSizeX = 10;
   const gridSizeY = 5;
 
@@ -122,6 +123,8 @@ export default function App() {
 
     backendData.items_list = [[], ...backendData.items_list];
 
+    setLoading(true);
+
     try {
       fetch(`http://localhost:8000/runSAT?man=${workers}`, {
         method: "POST",
@@ -134,12 +137,15 @@ export default function App() {
           response.text().then((text: string) => {
             setSAT_solution(JSON.parse(text));
           });
+          setLoading(false);
         })
         .catch((error: any) => {
           console.error("Error during fetch:", error);
+          setLoading(false);
         });
     } catch (error) {
       console.error("Error calling backend:", error);
+      setLoading(false);
     }
   };
 
@@ -1016,7 +1022,12 @@ export default function App() {
             {/* Results area */}
             <div>
               <h2 className="text-lg font-semibold mb-4">Results</h2>
-              {SAT_solution ? (
+              {loading ? (
+                <div className="flex flex-col items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                  <p className="text-gray-600">Solving problem...</p>
+                </div>
+              ) : SAT_solution ? (
                 <>
                   {SAT_solution.facts && (
                     <AnimatedSolutionVisualization solution={SAT_solution} />
@@ -1237,10 +1248,13 @@ export default function App() {
                 </button>
                 <button
                   onClick={handleGenerate}
-                  disabled={!!jsonError}
-                  className="bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-1 rounded text-sm"
+                  disabled={!!jsonError || loading}
+                  className="bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-1 rounded text-sm flex items-center gap-2"
                 >
-                  Solve
+                  {loading && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
+                  {loading ? "Solving..." : "Solve"}
                 </button>
               </div>
             </div>
