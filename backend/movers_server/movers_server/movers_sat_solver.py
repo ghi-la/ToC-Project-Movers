@@ -304,7 +304,7 @@ def toDimacsCnf(clauses):
 
 
 def printResult(res):
-    print(res)
+    # print(res)
     res = res.strip().split('\n')
 
     # If it was satisfiable, we want to have the assignment printed out
@@ -427,8 +427,6 @@ def run_sat_solver(items_l = [], workers=3):
     for i in range(0, len(items_l)-1):
         roads.append((floors[i], floors[i+1]))
         roads.append((floors[i+1], floors[i]))
-    # print("roads:",roads)
-    # print("floors:",floors)
     
     parcels = []
     items = {}
@@ -438,9 +436,7 @@ def run_sat_solver(items_l = [], workers=3):
             count += 1
             items.update({items_l[i][j]+str(count) + '_floor' + str(floors[i]) : floors[i]})
             parcels.append(items_l[i][j]+str(count) + '_floor' + str(floors[i]))
-    # print("items:",items)
     step = 0
-    # print("steps:",step)
     res = 'UNSATISFIABLE'
     facts = []
     while (res == 'UNSATISFIABLE'):

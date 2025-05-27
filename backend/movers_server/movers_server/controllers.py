@@ -1,5 +1,5 @@
 from django.http import HttpResponse, JsonResponse
-from .pseudo_solution_refactored import run_sat_solver
+from .movers_sat_solver import run_sat_solver
 from .utils import parse_SAT_facts_by_time, parse_SAT_facts_by_workers
 import json
 from django.views.decorators.csrf import csrf_exempt
