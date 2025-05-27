@@ -103,7 +103,9 @@ export default function App() {
   };
 
   React.useEffect(() => {
-    setManualJson(JSON.stringify(convertToBackendFormat(), null, 2));
+    if (defaultTab === 1) {
+      setManualJson(JSON.stringify(convertToBackendFormat(), null, 2));
+    }
   }, [floors, workers]);
 
   const handleGenerate = async () => {
@@ -112,9 +114,9 @@ export default function App() {
     if (defaultTab === 2) {
       try {
         backendData = JSON.parse(manualJson);
-        setJsonError("");
+        setJsonError('');
       } catch (error) {
-        setJsonError("Invalid JSON format");
+        setJsonError('Invalid JSON format');
         return;
       }
     } else {
@@ -127,9 +129,9 @@ export default function App() {
 
     try {
       fetch(`http://localhost:8000/runSAT?man=${workers}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(backendData),
       })
@@ -140,11 +142,11 @@ export default function App() {
           setLoading(false);
         })
         .catch((error: any) => {
-          console.error("Error during fetch:", error);
+          console.error('Error during fetch:', error);
           setLoading(false);
         });
     } catch (error) {
-      console.error("Error calling backend:", error);
+      console.error('Error calling backend:', error);
       setLoading(false);
     }
   };
@@ -157,12 +159,12 @@ export default function App() {
 
       // Validate structure
       if (!parsed.items_list) {
-        setJsonError("items_list is required");
+        setJsonError('items_list is required');
         return;
       }
 
       if (!Array.isArray(parsed.items_list)) {
-        setJsonError("items_list must be an array");
+        setJsonError('items_list must be an array');
         return;
       }
 
@@ -173,27 +175,27 @@ export default function App() {
         }
 
         for (let j = 0; j < parsed.items_list[i].length; j++) {
-          if (typeof parsed.items_list[i][j] !== "string") {
+          if (typeof parsed.items_list[i][j] !== 'string') {
             setJsonError(`items_list[${i}][${j}] must be a string`);
             return;
           }
         }
       }
 
-      setJsonError("");
+      setJsonError('');
     } catch (error) {
-      setJsonError("Invalid JSON syntax");
+      setJsonError('Invalid JSON syntax');
     }
   };
 
   const resetJsonToCurrentState = () => {
     setManualJson(JSON.stringify(convertToBackendFormat(), null, 2));
-    setJsonError("");
+    setJsonError('');
   };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, item: Item) => {
     setDraggedItem(item);
-    e.dataTransfer.setData("text/plain", item.name);
+    e.dataTransfer.setData('text/plain', item.name);
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>, floorId: number) => {
@@ -294,7 +296,7 @@ export default function App() {
 
   const deleteFloor = (floorId: number) => {
     if (floors.length <= 1) {
-      console.log("Cannot delete the last floor");
+      console.log('Cannot delete the last floor');
       return;
     }
 
@@ -369,40 +371,44 @@ export default function App() {
 
         <div className="mb-4">
           <div className="text-sm text-gray-700">
-            <strong>Status:</strong> {solution.is_satisfiable} in{" "}
+            <strong>Status:</strong> {solution.is_satisfiable} in{' '}
             {solution.steps} step(s)
           </div>
         </div>
+        {defaultTab === 1 && (
+          <>
+            {/* Only show the View Full Animation Button */}
 
-        {/* Only show the View Full Animation Button */}
-        <div className="mb-4">
-          <button
-            onClick={() => setShowFullScreenAnimation(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-              <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-              <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-            </svg>
-            View Full Animation
-          </button>
-        </div>
+            <div className="mb-4">
+              <button
+                onClick={() => setShowFullScreenAnimation(true)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+                  <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+                  <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+                  <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+                </svg>
+                View Full Animation
+              </button>
+            </div>
 
-        <div className="text-sm text-gray-600">
-          Click the button above to view the animated solution with step-by-step
-          worker movements.
-        </div>
+            <div className="text-sm text-gray-600">
+              Click the button above to view the animated solution with
+              step-by-step worker movements.
+            </div>
+          </>
+        )}
       </div>
     );
   };
@@ -530,13 +536,13 @@ export default function App() {
         stepActions.forEach((action: any) => {
           const worker = action.worker;
 
-          if (action.action === "goesTo") {
+          if (action.action === 'goesTo') {
             // Worker moves from one floor to another without carrying anything
             newWorkerStates[worker] = {
               ...newWorkerStates[worker],
               floor: parseInt(action.to_floor),
             };
-          } else if (action.action === "pickingUp") {
+          } else if (action.action === 'pickingUp') {
             // Worker picks up an object - object disappears from floor and worker carries it
             newWorkerStates[worker] = {
               ...newWorkerStates[worker],
@@ -549,7 +555,7 @@ export default function App() {
                 floor: -1, // -1 means object is being carried (not on any floor)
               };
             }
-          } else if (action.action === "transports") {
+          } else if (action.action === 'transports') {
             // Worker moves with an object from current floor to destination floor
             const destinationFloor = parseInt(action.to_floor);
             newWorkerStates[worker] = {
@@ -625,7 +631,7 @@ export default function App() {
               onClick={() => setIsPlaying(!isPlaying)}
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium"
             >
-              {isPlaying ? "Pause" : "Play"}
+              {isPlaying ? 'Pause' : 'Play'}
             </button>
 
             <button
@@ -639,7 +645,7 @@ export default function App() {
             </button>
 
             <span className="text-lg text-gray-600 ml-4">
-              Step {currentStep + 1} of {steps.length} (Time:{" "}
+              Step {currentStep + 1} of {steps.length} (Time:{' '}
               {currentStepNumber})
             </span>
           </div>
@@ -653,25 +659,25 @@ export default function App() {
               <ul className="text-blue-700">
                 {currentActions.map((action: any, idx: number) => (
                   <li key={idx} className="mb-1">
-                    <strong>{action.worker.replace("v_", "Worker ")}</strong>{" "}
-                    {action.action === "goesTo"
+                    <strong>{action.worker.replace('v_', 'Worker ')}</strong>{' '}
+                    {action.action === 'goesTo'
                       ? `moves from floor ${action.from_floor} to floor ${action.to_floor}`
-                      : action.action === "pickingUp"
+                      : action.action === 'pickingUp'
                       ? `picks up ${action.object
-                          .split("_")[0]
-                          .replace(/\d+/g, "")} from floor ${
-                          action.from_floor || "current floor"
+                          .split('_')[0]
+                          .replace(/\d+/g, '')} from floor ${
+                          action.from_floor || 'current floor'
                         }`
-                      : action.action === "transports"
+                      : action.action === 'transports'
                       ? parseInt(action.to_floor) === 0
                         ? `transports ${action.object
-                            .split("_")[0]
-                            .replace(/\d+/g, "")} from floor ${
+                            .split('_')[0]
+                            .replace(/\d+/g, '')} from floor ${
                             action.from_floor
                           } to outside building (deploys it)`
                         : `transports ${action.object
-                            .split("_")[0]
-                            .replace(/\d+/g, "")} from floor ${
+                            .split('_')[0]
+                            .replace(/\d+/g, '')} from floor ${
                             action.from_floor
                           } to floor ${action.to_floor} (still carrying)`
                       : action.action}
@@ -709,15 +715,15 @@ export default function App() {
                             <WorkerIcon />
                           </div>
                           <span className="text-xs font-bold bg-white px-2 py-1 rounded mt-1">
-                            {workerId.replace("v_", "Worker ")}
+                            {workerId.replace('v_', 'Worker ')}
                           </span>
                           {(state as { floor: number; carrying?: string })
                             .carrying && (
                             <div className="text-xs bg-blue-200 px-2 py-1 rounded mt-1">
-                              Carrying:{" "}
+                              Carrying:{' '}
                               {(state as { floor: number; carrying?: string })
-                                .carrying!.split("_")[0]
-                                .replace(/\d+/g, "")}
+                                .carrying!.split('_')[0]
+                                .replace(/\d+/g, '')}
                             </div>
                           )}
                         </div>
@@ -746,8 +752,8 @@ export default function App() {
                       )
                       .map(([objectKey, _]) => {
                         const objectName = objectKey
-                          .split("_")[0]
-                          .replace(/\d+/g, "");
+                          .split('_')[0]
+                          .replace(/\d+/g, '');
                         const originalItem = items.find(
                           (item) => item.name === objectName
                         );
@@ -755,7 +761,7 @@ export default function App() {
                           <div
                             key={objectKey}
                             className={`${
-                              originalItem?.color || "bg-gray-400"
+                              originalItem?.color || 'bg-gray-400'
                             } text-xs px-2 py-1 rounded font-medium shadow-lg`}
                             title={`${objectName} - Deployed outside building`}
                           >
@@ -817,7 +823,7 @@ export default function App() {
                                 <WorkerIcon />
                               </div>
                               <span className="text-xs font-bold bg-white px-1 rounded">
-                                {workerId.replace("v_", "W")}
+                                {workerId.replace('v_', 'W')}
                               </span>
                               {(state as { floor: number; carrying?: string })
                                 .carrying && (
@@ -828,8 +834,8 @@ export default function App() {
                                       carrying?: string;
                                     }
                                   )
-                                    .carrying!.split("_")[0]
-                                    .replace(/\d+/g, "")}
+                                    .carrying!.split('_')[0]
+                                    .replace(/\d+/g, '')}
                                 </div>
                               )}
                             </div>
@@ -850,8 +856,8 @@ export default function App() {
                           )
                           .map(([objectKey, _]) => {
                             const objectName = objectKey
-                              .split("_")[0]
-                              .replace(/\d+/g, "");
+                              .split('_')[0]
+                              .replace(/\d+/g, '');
                             const originalItem = items.find(
                               (item) => item.name === objectName
                             );
@@ -859,7 +865,7 @@ export default function App() {
                               <div
                                 key={objectKey}
                                 className={`${
-                                  originalItem?.color || "bg-gray-400"
+                                  originalItem?.color || 'bg-gray-400'
                                 } text-lg px-4 py-2 rounded font-medium shadow-lg`}
                                 title={objectKey}
                               >
@@ -889,16 +895,16 @@ export default function App() {
                       <WorkerIcon />
                     </div>
                     <span className="text-xl font-bold">
-                      {workerId.replace("v_", "Worker ")}
+                      {workerId.replace('v_', 'Worker ')}
                     </span>
                   </div>
 
                   <div className="text-gray-600">
                     <div className="text-lg mb-2">
-                      <strong>Location:</strong>{" "}
+                      <strong>Location:</strong>{' '}
                       {(state as { floor: number; carrying?: string }).floor ===
                       0
-                        ? "Ground Level (Outside Building)"
+                        ? 'Ground Level (Outside Building)'
                         : `Floor ${
                             (state as { floor: number; carrying?: string })
                               .floor
@@ -907,10 +913,10 @@ export default function App() {
                     {(state as { floor: number; carrying?: string })
                       .carrying && (
                       <div className="text-blue-600 font-bold text-lg">
-                        <strong>Carrying:</strong>{" "}
+                        <strong>Carrying:</strong>{' '}
                         {(state as { floor: number; carrying?: string })
-                          .carrying!.split("_")[0]
-                          .replace(/\d+/g, "")}
+                          .carrying!.split('_')[0]
+                          .replace(/\d+/g, '')}
                       </div>
                     )}
                   </div>
@@ -935,8 +941,8 @@ export default function App() {
         <div
           onClick={() => setDefaultTab(1)}
           className={twMerge(
-            defaultTab === 1 ? "bg-white" : "bg-gray-200",
-            "border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer"
+            defaultTab === 1 ? 'bg-white' : 'bg-gray-200',
+            'border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer'
           )}
         >
           Manual
@@ -944,8 +950,8 @@ export default function App() {
         <div
           onClick={() => setDefaultTab(2)}
           className={twMerge(
-            defaultTab === 2 ? "bg-white" : "bg-gray-200",
-            "border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer"
+            defaultTab === 2 ? 'bg-white' : 'bg-gray-200',
+            'border border-y-1 border-l-1 border-r-0 rounded-l-lg p-4 border-gray-200 cursor-pointer'
           )}
         >
           JSON
@@ -1272,7 +1278,7 @@ export default function App() {
                   {loading && (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   )}
-                  {loading ? "Solving..." : "Solve"}
+                  {loading ? 'Solving...' : 'Solve'}
                 </button>
               </div>
             </div>
@@ -1281,10 +1287,10 @@ export default function App() {
               value={manualJson}
               onChange={(e) => validateAndUpdateJson(e.target.value)}
               className={`flex-grow p-4 border rounded-lg font-mono text-sm resize-none ${
-                jsonError ? "border-red-300 bg-red-50" : "border-gray-300"
+                jsonError ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder="Enter JSON data here..."
-              style={{ minHeight: "400px" }}
+              style={{ minHeight: '400px' }}
             />
           </div>
 
@@ -1301,14 +1307,31 @@ export default function App() {
             />
           </div>
 
+          {/* Results Section (added for Tab 2) */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Results</h2>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <p className="text-gray-600">Solving problem...</p>
+              </div>
+            ) : SAT_solution ? (
+              <>
+                {SAT_solution.facts && (
+                  <AnimatedSolutionVisualization solution={SAT_solution} />
+                )}
+              </>
+            ) : (
+              <p className="text-gray-500">No results yet</p>
+            )}
+          </div>
           <div className="mt-4 p-4 bg-gray-50 rounded">
             <h4 className="font-semibold mb-2">Example:</h4>
             <pre className="text-xs text-gray-600">
               {`{
   "items_list": [
     ["sofa", "table", "chair"],
-    ["bed", "wardrobe"],
-    ["desk", "lamp", "tv"]
+    ["bed", "wardrobe"]
   ]
 }`}
             </pre>
