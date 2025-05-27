@@ -91,33 +91,6 @@ export default function App() {
   const gridSizeY = 5;
 
   const [SAT_solution, setSAT_solution] = useState(null as string | null);
-  const [currentJsonData, setCurrentJsonData] = useState(null as any); // Store the JSON data used for the solution
-
-  // Function to generate random colors for items
-  const generateRandomColor = (name: string) => {
-    // Use the item name as seed for consistent colors
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-
-    const colors = [
-      "bg-red-500 border border-2 border-red-600",
-      "bg-blue-500 border border-2 border-blue-600",
-      "bg-green-500 border border-2 border-green-600",
-      "bg-yellow-500 border border-2 border-yellow-600",
-      "bg-purple-500 border border-2 border-purple-600",
-      "bg-pink-500 border border-2 border-pink-600",
-      "bg-indigo-500 border border-2 border-indigo-600",
-      "bg-orange-500 border border-2 border-orange-600",
-      "bg-teal-500 border border-2 border-teal-600",
-      "bg-cyan-500 border border-2 border-cyan-600",
-      "bg-lime-500 border border-2 border-lime-600",
-      "bg-amber-500 border border-2 border-amber-600",
-    ];
-
-    return colors[Math.abs(hash) % colors.length];
-  };
 
   const convertToBackendFormat = () => {
     const floorsArray = floors.map((floor) =>
@@ -140,16 +113,12 @@ export default function App() {
       try {
         backendData = JSON.parse(manualJson);
         setJsonError("");
-        // Store the JSON data for animation
-        setCurrentJsonData(backendData);
       } catch (error) {
         setJsonError("Invalid JSON format");
         return;
       }
     } else {
       backendData = convertToBackendFormat();
-      // Store the current floors data for animation
-      setCurrentJsonData(backendData);
     }
 
     backendData.items_list = [[], ...backendData.items_list];
@@ -495,31 +464,9 @@ export default function App() {
       [key: string]: { floor: number; originalFloor: number };
     }>({});
 
-    // Create dynamic floors and items based on the JSON data used for the solution
-    const animationFloors = React.useMemo(() => {
-      if (!currentJsonData?.items_list) return [];
-
-      return currentJsonData.items_list.map(
-        (floorItems: string[], index: number) => ({
-          id: index + 1,
-          objects: floorItems.map((itemName: string, itemIndex: number) => ({
-            item: {
-              name: itemName,
-              size: 1, // Default size for JSON items
-              color: generateRandomColor(itemName),
-              isVertical: false,
-            },
-            x: itemIndex, // Simple positioning
-            y: 0,
-            isVertical: false,
-          })),
-        })
-      );
-    }, [currentJsonData]);
-
     // Initialize states based on initial floor configuration
     React.useEffect(() => {
-      if (!solution?.facts || !currentJsonData) return;
+      if (!solution?.facts) return;
 
       // Initialize worker states (all start at floor 0 - ground)
       const initialWorkerStates: {
@@ -529,32 +476,28 @@ export default function App() {
         initialWorkerStates[`v_${i}`] = { floor: 0 };
       }
 
-      // Initialize object states based on JSON data
+      // Initialize object states based on current floor configuration
       const initialBuildingState: {
         [key: string]: { floor: number; originalFloor: number };
       } = {};
-      currentJsonData.items_list.forEach(
-        (floorItems: string[], floorIndex: number) => {
-          floorItems.forEach((itemName: string, itemIndex: number) => {
-            const objectKey = `${itemName}${itemIndex + 1}_floor${
-              floorIndex + 1
-            }`;
-            initialBuildingState[objectKey] = {
-              floor: floorIndex + 1,
-              originalFloor: floorIndex + 1,
-            };
-          });
-        }
-      );
+      floors.forEach((floor) => {
+        floor.objects.forEach((obj, index) => {
+          const objectKey = `${obj.item.name}${index + 1}_floor${floor.id}`;
+          initialBuildingState[objectKey] = {
+            floor: floor.id,
+            originalFloor: floor.id,
+          };
+        });
+      });
 
       setWorkerStates(initialWorkerStates);
       setBuildingState(initialBuildingState);
       setCurrentStep(0);
-    }, [solution, currentJsonData, workers]);
+    }, [solution, floors, workers]);
 
     // Apply actions up to current step
     React.useEffect(() => {
-      if (!solution?.facts || !currentJsonData) return;
+      if (!solution?.facts) return;
 
       const steps = Object.keys(solution.facts)
         .map(Number)
@@ -571,19 +514,15 @@ export default function App() {
       const newBuildingState: {
         [key: string]: { floor: number; originalFloor: number };
       } = {};
-      currentJsonData.items_list.forEach(
-        (floorItems: string[], floorIndex: number) => {
-          floorItems.forEach((itemName: string, itemIndex: number) => {
-            const objectKey = `${itemName}${itemIndex + 1}_floor${
-              floorIndex + 1
-            }`;
-            newBuildingState[objectKey] = {
-              floor: floorIndex + 1,
-              originalFloor: floorIndex + 1,
-            };
-          });
-        }
-      );
+      floors.forEach((floor) => {
+        floor.objects.forEach((obj, index) => {
+          const objectKey = `${obj.item.name}${index + 1}_floor${floor.id}`;
+          newBuildingState[objectKey] = {
+            floor: floor.id,
+            originalFloor: floor.id,
+          };
+        });
+      });
 
       // Apply all actions up to current step
       for (let i = 0; i <= currentStep && i < steps.length; i++) {
@@ -637,7 +576,7 @@ export default function App() {
 
       setWorkerStates(newWorkerStates);
       setBuildingState(newBuildingState);
-    }, [currentStep, solution, currentJsonData]);
+    }, [currentStep, solution, floors]);
 
     // Auto-play functionality
     React.useEffect(() => {
@@ -659,7 +598,7 @@ export default function App() {
       return () => clearInterval(interval);
     }, [isPlaying, solution]);
 
-    if (!solution?.facts || !currentJsonData) return null;
+    if (!solution?.facts) return null;
 
     const steps = Object.keys(solution.facts)
       .map(Number)
@@ -809,11 +748,15 @@ export default function App() {
                         const objectName = objectKey
                           .split("_")[0]
                           .replace(/\d+/g, "");
-                        const itemColor = generateRandomColor(objectName);
+                        const originalItem = items.find(
+                          (item) => item.name === objectName
+                        );
                         return (
                           <div
                             key={objectKey}
-                            className={`${itemColor} text-xs px-2 py-1 rounded font-medium shadow-lg`}
+                            className={`${
+                              originalItem?.color || "bg-gray-400"
+                            } text-xs px-2 py-1 rounded font-medium shadow-lg`}
                             title={`${objectName} - Deployed outside building`}
                           >
                             {objectName}
@@ -848,7 +791,7 @@ export default function App() {
                 </div>
 
                 {/* Building floors with workers */}
-                {animationFloors.map((floor) => (
+                {floors.map((floor) => (
                   <div key={floor.id} className="relative mb-2">
                     <div className="h-4 w-full bg-gray-600"></div>
                     <div className="relative w-full h-32 border-4 border-gray-300 bg-white">
@@ -909,11 +852,15 @@ export default function App() {
                             const objectName = objectKey
                               .split("_")[0]
                               .replace(/\d+/g, "");
-                            const itemColor = generateRandomColor(objectName);
+                            const originalItem = items.find(
+                              (item) => item.name === objectName
+                            );
                             return (
                               <div
                                 key={objectKey}
-                                className={`${itemColor} text-lg px-4 py-2 rounded font-medium shadow-lg`}
+                                className={`${
+                                  originalItem?.color || "bg-gray-400"
+                                } text-lg px-4 py-2 rounded font-medium shadow-lg`}
                                 title={objectKey}
                               >
                                 {objectName}
@@ -1352,25 +1299,6 @@ export default function App() {
               placeholder="How many workers?"
               className="bg-gray-100 rounded-lg border border-gray-300 p-2 text-sm"
             />
-          </div>
-
-          {/* Results area - Add this to JSON tab */}
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">Results</h3>
-            {loading ? (
-              <div className="flex flex-col items-center justify-center p-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <p className="text-gray-600">Solving problem...</p>
-              </div>
-            ) : SAT_solution ? (
-              <>
-                {SAT_solution.facts && (
-                  <AnimatedSolutionVisualization solution={SAT_solution} />
-                )}
-              </>
-            ) : (
-              <p className="text-gray-500">No results yet</p>
-            )}
           </div>
 
           <div className="mt-4 p-4 bg-gray-50 rounded">
